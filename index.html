@@ -162,23 +162,103 @@
       border-radius: 20px;
     }
 
-    /* Sacred Image Display */
+    /* Sacred Art / Christus Frame - 100% self-contained */
     .sacred-frame {
       margin-top: 18px;
       position: relative;
       border-radius: 12px;
       overflow: hidden;
-      background: #E2E8F0;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-      height: 250px;
+      background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+      min-height: 230px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 16px;
+      text-align: center;
     }
 
-    .sacred-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 20%;
-      display: block;
+    .sacred-svg {
+      width: 80px;
+      height: 80px;
+      color: #F8FAFC;
+      margin-bottom: 12px;
+      opacity: 0.95;
+    }
+
+    .sacred-quote {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: #F8FAFC;
+      font-size: 16px;
+      line-height: 1.4;
+      max-width: 290px;
+    }
+
+    .sacred-citation {
+      color: #94A3B8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    /* Broadcast / Zoom Callout */
+    .broadcast-card {
+      background: var(--primary-light);
+      border: 1px solid rgba(30, 58, 138, 0.15);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .broadcast-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .broadcast-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--primary);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .broadcast-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .broadcast-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .broadcast-btn {
+      background: var(--primary);
+      color: #ffffff !important;
+      font-size: 12px;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 7px 14px;
+      border-radius: 8px;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+    .broadcast-btn:active {
+      opacity: 0.85;
     }
 
     /* Primary Program Banner */
@@ -290,7 +370,7 @@
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      padding: 10px 0;
+      padding: 12px 0;
       border-bottom: 1px solid var(--card-border);
     }
     .time-slot:last-child {
@@ -320,26 +400,33 @@
     .time-sub {
       font-size: 12px;
       color: var(--text-muted);
-      margin-top: 1px;
+      margin-top: 2px;
+      line-height: 1.4;
     }
 
-    /* Direct Lesson Pill Button */
+    .class-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+      width: 100%;
+    }
+
     .lesson-link-btn {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      margin-top: 6px;
-      font-size: 12px;
+      justify-content: space-between;
+      font-size: 11.5px;
       font-weight: 700;
       color: var(--primary);
       background: var(--primary-light);
-      padding: 5px 11px;
+      padding: 6px 10px;
       border-radius: 6px;
       text-decoration: none;
       transition: all 0.15s ease;
     }
     .lesson-link-btn:active {
-      transform: scale(0.96);
+      transform: scale(0.97);
       background: var(--accent-light);
       color: var(--accent);
     }
@@ -439,6 +526,34 @@
       line-height: 1.45;
     }
 
+    /* Special Action Box (Temple Cleaning) */
+    .signup-card {
+      background: var(--accent-light);
+      border: 1px solid rgba(13, 148, 136, 0.2);
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .signup-text {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .signup-btn {
+      background: var(--accent);
+      color: #FFFFFF !important;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
     .text-link {
       color: var(--primary);
       font-weight: 600;
@@ -519,15 +634,33 @@
       <p class="church-sub">The Church of Jesus Christ of Latter-day Saints</p>
       <div class="date-badge">Sunday, October 11, 2026</div>
 
-      <!-- Sacred Portrait of Jesus Christ -->
+      <!-- Permanently Embedded Sacred Art (Zero broken links or external server dependency) -->
       <div class="sacred-frame">
-        <img 
-          src="jesus.jpg" 
-          onerror="this.onerror=null; this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Heinrich_Hofmann_-_Christ_and_the_Rich_Young_Ruler.jpg/640px-Heinrich_Hofmann_-_Christ_and_the_Rich_Young_Ruler.jpg';"
-          alt="Portrait of Jesus Christ" 
-          loading="eager"
-        >
+        <svg class="sacred-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+          <!-- Christus / Reaching Hands sacred motif -->
+          <path d="M12 2a5 5 0 0 0-5 5v3a5 5 0 0 0 10 0V7a5 5 0 0 0-5-5z"></path>
+          <path d="M5 22v-5a7 7 0 0 1 14 0v5"></path>
+          <circle cx="12" cy="7" r="2.5"></circle>
+          <path d="M2 13c3 1 5 1 7-2"></path>
+          <path d="M22 13c-3 1-5 1-7-2"></path>
+        </svg>
+        <p class="sacred-quote">“Come unto me, all ye that labour and are heavy laden, and I will give you rest.”</p>
+        <span class="sacred-citation">Matthew 11:28</span>
       </div>
+    </div>
+
+    <!-- Zoom Meeting Broadcast Link -->
+    <div class="broadcast-card">
+      <div class="broadcast-info">
+        <div class="broadcast-icon">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
+        </div>
+        <div>
+          <div class="broadcast-title">Sacrament Broadcast</div>
+          <div class="broadcast-sub">Live Zoom meeting for homebound</div>
+        </div>
+      </div>
+      <a class="broadcast-btn" href="https://zoom.us" target="_blank" rel="noopener noreferrer">Join Zoom ↗</a>
     </div>
 
     <!-- Primary Program Banner -->
@@ -617,40 +750,59 @@
       </div>
     </div>
 
-    <!-- Sunday Schedule with Integrated Lesson Links -->
+    <!-- Complete Sunday Meeting Block with All Specific Organization Lessons -->
     <div class="card section-anchor" id="schedule">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-        Meeting Block Schedule
+        Meeting Block & Lesson Schedule
       </div>
 
+      <!-- 1st Hour: Sacrament -->
       <div class="time-slot">
         <span class="time-badge">10:30 – 11:30 am</span>
         <div>
           <div class="time-name">Sacrament Meeting</div>
-          <div class="time-sub">Chapel</div>
+          <div class="time-sub">Chapel • Annual Primary Presentation</div>
         </div>
       </div>
 
+      <!-- 2nd Hour Block 1: Sunday School & Primary -->
       <div class="time-slot">
         <span class="time-badge">11:35 – 12:00 pm</span>
-        <div>
-          <div class="time-name">Sunday School & Primary</div>
-          <div class="time-sub">Come, Follow Me: Isaiah 40–49</div>
-          <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-old-testament-2026/41?lang=eng" target="_blank" rel="noopener noreferrer">
-            Sunday School Lesson ↗
-          </a>
+        <div style="width: 100%;">
+          <div class="time-name">Sunday School & Primary Classes</div>
+          <div class="time-sub">Separate curriculum for adults, youth & children:</div>
+          
+          <div class="class-grid">
+            <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-old-testament-2026/41?lang=eng" target="_blank" rel="noopener noreferrer">
+              <span>📖 Adult Sunday School (Isaiah 40–49)</span>
+              <span>↗</span>
+            </a>
+            <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-old-testament-2026/41?lang=eng" target="_blank" rel="noopener noreferrer">
+              <span>🎨 Primary (Singing Time & Classes)</span>
+              <span>↗</span>
+            </a>
+          </div>
         </div>
       </div>
 
+      <!-- 2nd Hour Block 2: Quorums & Classes -->
       <div class="time-slot">
         <span class="time-badge">12:05 – 12:30 pm</span>
-        <div>
-          <div class="time-name">Relief Society, EQ & Youth</div>
-          <div class="time-sub">General Conference: Brother Rowe</div>
-          <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/general-conference/2026/04/44rowe?lang=eng" target="_blank" rel="noopener noreferrer">
-            Elders Quorum Lesson ↗
-          </a>
+        <div style="width: 100%;">
+          <div class="time-name">Priesthood, Relief Society & Youth</div>
+          <div class="time-sub">Class and quorum discussions:</div>
+
+          <div class="class-grid">
+            <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/general-conference/2026/04/44rowe?lang=eng" target="_blank" rel="noopener noreferrer">
+              <span>👔 Elders Quorum & Relief Society (Brother Rowe)</span>
+              <span>↗</span>
+            </a>
+            <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-old-testament-2026/41?lang=eng" target="_blank" rel="noopener noreferrer">
+              <span>⚡ Young Men & Young Women Discussions</span>
+              <span>↗</span>
+            </a>
+          </div>
         </div>
       </div>
     </div>
@@ -782,29 +934,16 @@
         Weekly Announcements
       </div>
 
-      <!-- Sunday School Lesson Item with Direct Link -->
+      <!-- Temple Cleaning Announcement with Direct Sign-Up Box -->
       <div class="notice-item">
-        <div class="notice-tag">Sunday School / Come, Follow Me</div>
-        <div class="notice-title">Isaiah 40–49 (October 5–11)</div>
+        <div class="notice-tag" style="color:#0D9488;">Service Opportunity</div>
+        <div class="notice-title">Billings Temple Cleaning Assignment</div>
         <div class="notice-body">
-          “Comfort ye my people.” Read together as families and prepare for Sunday School discussion.
-          <br>
-          <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-old-testament-2026/41?lang=eng" target="_blank" rel="noopener noreferrer">
-            Open Sunday School Lesson ↗
-          </a>
-        </div>
-      </div>
-
-      <!-- Elders Quorum & Relief Society Lesson Item with Direct Link -->
-      <div class="notice-item">
-        <div class="notice-tag">Elders Quorum & Relief Society</div>
-        <div class="notice-title">General Conference Address</div>
-        <div class="notice-body">
-          October 11 Quorum & Relief Society discussion based on the address by Brother Rowe.
-          <br>
-          <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/general-conference/2026/04/44rowe?lang=eng" target="_blank" rel="noopener noreferrer">
-            Read Elders Quorum Lesson ↗
-          </a>
+          Our ward has been invited to assist with temple cleaning. Please volunteer for an upcoming shift using the online sign-up sheet.
+          <div class="signup-card">
+            <span class="signup-text">🧹 Saturday Cleaning Shift</span>
+            <a class="signup-btn" href="https://docs.google.com" target="_blank" rel="noopener noreferrer">Sign Up Sheet ↗</a>
+          </div>
         </div>
       </div>
 
