@@ -162,58 +162,21 @@
       border-radius: 20px;
     }
 
-    /* Image Frame */
+    /* Sacred Image Display */
     .sacred-frame {
       margin-top: 18px;
       position: relative;
       border-radius: 12px;
-      border: 2px dashed var(--card-border);
-      background: var(--bg);
-      min-height: 220px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
       overflow: hidden;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .sacred-frame:hover {
-      border-color: var(--accent);
+      background: #0F172A;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
     }
 
     .sacred-frame img {
       width: 100%;
       height: 250px;
       object-fit: cover;
-      display: none;
-    }
-
-    .frame-prompt {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      padding: 18px;
-      text-align: center;
-    }
-
-    .frame-icon {
-      width: 38px;
-      height: 38px;
-      color: var(--text-muted);
-    }
-
-    .frame-prompt p {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .frame-prompt span {
-      font-size: 11px;
-      color: var(--text-muted);
+      display: block;
     }
 
     /* Primary Program Banner */
@@ -543,15 +506,9 @@
       <p class="church-sub">The Church of Jesus Christ of Latter-day Saints</p>
       <div class="date-badge">Sunday, October 11, 2026</div>
 
-      <!-- Sacred Image Area -->
-      <div class="sacred-frame" id="imageUploader">
-        <input type="file" id="fileInput" accept="image/*" style="display:none;">
-        <img id="sacredImage" alt="Portrait of Jesus Christ">
-        <div class="frame-prompt" id="promptArea">
-          <svg class="frame-icon" fill="none" stroke="currentColor" stroke-width="1.6" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-          <p>Tap to place photo of Jesus</p>
-          <span>Selects portrait from phone camera roll</span>
-        </div>
+      <!-- Permanently Hosted Sacred Portrait of Jesus Christ -->
+      <div class="sacred-frame">
+        <img src="https://assets.churchofjesuschrist.org/54/6b/546be7e722883f360c73e9e3febe7e3ea0891a99/jesus_christ_portrait.jpeg" alt="Portrait of Jesus Christ" loading="eager">
       </div>
     </div>
 
@@ -766,148 +723,4 @@
           <div class="dir-name">Linda Wing</div>
         </div>
         <div class="dir-actions">
-          <a class="action-btn" href="tel:4066907330" title="Call Linda Wing" aria-label="Call">
-            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>
-          </a>
-          <a class="action-btn" href="sms:4066907330" title="Text Linda Wing" aria-label="Text">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-          </a>
-        </div>
-      </div>
-
-      <!-- Full-time Missionaries -->
-      <div class="directory-row">
-        <div>
-          <div class="dir-role">Full-Time Missionaries</div>
-          <div class="dir-name">Elders Cureton, Jones & Morales</div>
-        </div>
-        <div class="dir-actions">
-          <a class="action-btn" href="tel:4062087377" title="Call Missionaries" aria-label="Call">
-            <svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>
-          </a>
-          <a class="action-btn" href="sms:4062087377" title="Text Missionaries" aria-label="Text">
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
-          </a>
-        </div>
-      </div>
-    </div>
-
-    <!-- Announcements -->
-    <div class="card section-anchor" id="announcements">
-      <div class="card-title">
-        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-        Weekly Announcements
-      </div>
-
-      <!-- Sunday School Lesson Item with Direct Link -->
-      <div class="notice-item">
-        <div class="notice-tag">Sunday School / Come, Follow Me</div>
-        <div class="notice-title">Isaiah 40–49 (October 5–11)</div>
-        <div class="notice-body">
-          “Comfort ye my people.” Read together as families and prepare for Sunday School discussion.
-          <br>
-          <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-old-testament-2026/41?lang=eng" target="_blank" rel="noopener noreferrer">
-            Open Sunday School Lesson ↗
-          </a>
-        </div>
-      </div>
-
-      <!-- Elders Quorum & Relief Society Lesson Item with Direct Link -->
-      <div class="notice-item">
-        <div class="notice-tag">Elders Quorum & Relief Society</div>
-        <div class="notice-title">General Conference Address</div>
-        <div class="notice-body">
-          October 11 Quorum & Relief Society discussion based on the address by Brother Rowe.
-          <br>
-          <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/general-conference/2026/04/44rowe?lang=eng" target="_blank" rel="noopener noreferrer">
-            Read Elders Quorum Lesson ↗
-          </a>
-        </div>
-      </div>
-
-      <!-- BYU Pathway Item -->
-      <div class="notice-item">
-        <div class="notice-tag">Education</div>
-        <div class="notice-title">BYU Pathway Worldwide</div>
-        <div class="notice-body">
-          Registration closes October 19 (classes start Oct 26). Contact Service Missionary Reed Christensen at <a class="text-link" href="tel:4068508078">(406) 850–8078</a> for help registering.
-        </div>
-      </div>
-
-      <!-- Addiction Recovery Item -->
-      <div class="notice-item">
-        <div class="notice-tag">Support Group</div>
-        <div class="notice-title">Addiction Recovery Meetings</div>
-        <div class="notice-body">
-          • Men's Recovery: Tuesdays 7:00 pm @ Monad Building<br>
-          • General Addiction: Tuesdays 7:00 pm @ East Stake Center<br>
-          Visit <a class="text-link" href="https://addictionrecovery.churchofjesuschrist.org" target="_blank" rel="noopener noreferrer">addictionrecovery.churchofjesuschrist.org</a> for details.
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Bottom Floating Navigation using Native Hyperlinks & JS fallback -->
-  <nav class="bottom-bar" aria-label="Quick Navigation">
-    <a href="#program" class="nav-link" onclick="scrollToId('program', event)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-      <span>Program</span>
-    </a>
-    <a href="#schedule" class="nav-link" onclick="scrollToId('schedule', event)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-      <span>Schedule</span>
-    </a>
-    <a href="#contact" class="nav-link" onclick="scrollToId('contact', event)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-      <span>Contact</span>
-    </a>
-    <a href="#announcements" class="nav-link" onclick="scrollToId('announcements', event)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg>
-      <span>Updates</span>
-    </a>
-  </nav>
-
-  <script>
-    function scrollToId(targetId, event) {
-      if (event) event.preventDefault();
-      var el = document.getElementById(targetId);
-      if (el) {
-        var yOffset = -20;
-        var y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
-      }
-    }
-
-    var toggleBtn = document.getElementById('themeToggle');
-    if (toggleBtn) {
-      toggleBtn.addEventListener('click', function() {
-        var current = document.documentElement.getAttribute('data-theme');
-        var next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-      });
-    }
-
-    var uploader = document.getElementById('imageUploader');
-    var fileInput = document.getElementById('fileInput');
-    var sacredImg = document.getElementById('sacredImage');
-    var promptArea = document.getElementById('promptArea');
-
-    if (uploader && fileInput) {
-      uploader.addEventListener('click', function() { fileInput.click(); });
-      fileInput.addEventListener('change', function(e) {
-        var file = e.target.files[0];
-        if (file) {
-          var reader = new FileReader();
-          reader.onload = function(event) {
-            sacredImg.src = event.target.result;
-            sacredImg.style.display = 'block';
-            promptArea.style.display = 'none';
-          };
-          reader.readAsDataURL(file);
-        }
-      });
-    }
-  </script>
-</body>
-</html>
+          <a class="action-btn"
