@@ -261,42 +261,6 @@
       opacity: 0.85;
     }
 
-    /* Primary Program Banner */
-    .primary-highlight-card {
-      background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%);
-      color: #FFFFFF;
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: 0 8px 20px -4px rgba(30, 58, 138, 0.35);
-      position: relative;
-    }
-
-    .primary-badge {
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      background: rgba(255, 255, 255, 0.18);
-      padding: 3px 8px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-bottom: 8px;
-    }
-
-    .primary-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 6px;
-    }
-
-    .primary-desc {
-      font-size: 12px;
-      opacity: 0.9;
-      line-height: 1.4;
-    }
-
     /* Standard Card */
     .card {
       background: var(--card-bg);
@@ -526,7 +490,7 @@
       line-height: 1.45;
     }
 
-    /* Special Action Box (Temple Cleaning) */
+    /* Special Action Box (Signups) */
     .signup-card {
       background: var(--accent-light);
       border: 1px solid rgba(13, 148, 136, 0.2);
@@ -632,25 +596,24 @@
     <div class="header-card section-anchor" id="program">
       <h1 class="ward-title">Echo Canyon Ward</h1>
       <p class="church-sub">The Church of Jesus Christ of Latter-day Saints</p>
-      <div class="date-badge">Sunday, October 11, 2026</div>
+      <div class="date-badge" id="bulletinDate">Sunday, October 11, 2026</div>
 
-      <!-- Old Testament Scripture Header (Isaiah 40:31 from CFM Lesson) -->
+      <!-- Old Testament Scripture Header (Dynamic from Sheet) -->
       <div class="sacred-frame">
         <svg class="sacred-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-          <!-- Rising wings / Isaiah 40:31 sacred motif -->
           <path d="M12 3v18"></path>
           <path d="M12 4c-4.5 3-9 2-10 8 3-1 6-1 10-1"></path>
           <path d="M12 4c4.5 3 9 2 10 8-3-1-6-1-10-1"></path>
           <path d="M12 11c-3.5 2-7 1.5-8 6 2.5-.7 5-.7 8-.7"></path>
           <path d="M12 11c3.5 2 7 1.5 8 6-2.5-.7-5-.7-8-.7"></path>
         </svg>
-        <p class="sacred-quote">“They that wait upon the Lord shall renew their strength; they shall mount up with wings as eagles.”</p>
-        <span class="sacred-citation">Isaiah 40:31</span>
+        <p class="sacred-quote" id="scriptureQuote">“They that wait upon the Lord shall renew their strength; they shall mount up with wings as eagles.”</p>
+        <span class="sacred-citation" id="scriptureCitation">Isaiah 40:31</span>
       </div>
     </div>
 
     <!-- Sacrament Meeting Broadcast Link -->
-    <div class="broadcast-card">
+    <div class="broadcast-card" id="broadcastContainer">
       <div class="broadcast-info">
         <div class="broadcast-icon">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 7l-7 5 7 5V7z"></path><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
@@ -660,97 +623,26 @@
           <div class="broadcast-sub">Live meeting broadcast for homebound</div>
         </div>
       </div>
-      <a class="broadcast-btn" id="zoomLink" href="https://www.churchofjesuschrist.org/media/broadcasts/local-meeting-554312?lang=eng" target="_blank" rel="noopener noreferrer">Watch Broadcast ↗</a>
+      <a class="broadcast-btn" id="broadcastLink" href="https://www.churchofjesuschrist.org/media/broadcasts/local-meeting-554312?lang=eng" target="_blank" rel="noopener noreferrer">Watch Broadcast ↗</a>
     </div>
 
-    <!-- Primary Program Banner -->
-    <div class="primary-highlight-card">
-      <span class="primary-badge">Special Presentation</span>
-      <h2 class="primary-title">Annual Primary Program</h2>
-      <p class="primary-desc">Presented by the children of the Echo Canyon Ward Primary. Featuring scripture recitations, testimonies, and musical numbers.</p>
-    </div>
-
-    <!-- Program Agenda -->
+    <!-- Dynamic Sacrament Program Agenda -->
     <div class="card">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         Sacrament Meeting
       </div>
-
-      <div class="program-item">
-        <span class="program-label">Presiding</span>
-        <span class="program-val">Bishop Jed Walker</span>
-      </div>
-      <div class="program-item">
-        <span class="program-label">Conducting</span>
-        <span class="program-val">Scott Worthington</span>
-      </div>
-      <div class="program-item">
-        <span class="program-label">Music Leader</span>
-        <span class="program-val">Sarah May</span>
-      </div>
-      <div class="program-item">
-        <span class="program-label">Organist</span>
-        <span class="program-val">Callie Beachman</span>
-      </div>
-      <div class="program-item">
-        <span class="program-label">Welcome</span>
-        <span class="program-val">Scott Worthington</span>
-      </div>
-      <div class="program-item">
-        <div>
-          <div class="program-label">Opening Hymn</div>
-          <div style="font-size:12px;color:var(--text-muted);">Come, Ye Children of the Lord</div>
-        </div>
-        <a class="hymn-link" href="https://www.churchofjesuschrist.org/music/library/hymns/come-ye-children-of-the-lord?lang=eng" target="_blank" rel="noopener noreferrer">
-          #58 ↗
-        </a>
-      </div>
-      <div class="program-item">
-        <span class="program-label">Invocation</span>
-        <span class="program-val">By Invitation</span>
-      </div>
-      <div class="program-item">
-        <span class="program-label">Ward & Stake Business</span>
-        <span class="program-val">—</span>
-      </div>
-      <div class="program-item">
-        <div>
-          <div class="program-label">Sacrament Hymn</div>
-          <div style="font-size:12px;color:var(--text-muted);">In Memory of the Crucified</div>
-        </div>
-        <a class="hymn-link" href="https://www.churchofjesuschrist.org/music/library/hymns/in-memory-of-the-crucified?lang=eng" target="_blank" rel="noopener noreferrer">
-          #190 ↗
-        </a>
-      </div>
-      <div class="program-item">
-        <span class="program-label">The Sacrament</span>
-        <span class="program-val">Echo Canyon Priesthood</span>
-      </div>
-      <div class="program-item" style="background:var(--primary-light);margin:6px -10px;padding:10px;border-radius:10px;">
-        <span class="program-label" style="color:var(--primary);">Primary Program</span>
-        <span class="program-val" style="font-weight:700;color:var(--primary);">Primary Children</span>
-      </div>
-      <div class="program-item">
-        <span class="program-label">Remarks</span>
-        <span class="program-val">Bishop Jed Walker</span>
-      </div>
-      <div class="program-item">
-        <div>
-          <div class="program-label">Closing Hymn</div>
-          <div style="font-size:12px;color:var(--text-muted);">I Am a Child of God</div>
-        </div>
-        <a class="hymn-link" href="https://www.churchofjesuschrist.org/music/library/hymns/i-am-a-child-of-god?lang=eng" target="_blank" rel="noopener noreferrer">
-          #301 ↗
-        </a>
-      </div>
-      <div class="program-item">
-        <span class="program-label">Benediction</span>
-        <span class="program-val">By Invitation</span>
+      <div id="programList">
+        <!-- Loaded dynamically from Google Sheet 'Program' tab -->
+        <div class="program-item"><span class="program-label">Presiding</span><span class="program-val">Bishop Jed Walker</span></div>
+        <div class="program-item"><span class="program-label">Conducting</span><span class="program-val">Scott Worthington</span></div>
+        <div class="program-item"><span class="program-label">Welcome</span><span class="program-val">Scott Worthington</span></div>
+        <div class="program-item"><span class="program-label">Music Leader</span><span class="program-val">Sarah May</span></div>
+        <div class="program-item"><span class="program-label">Organist</span><span class="program-val">Callie Beachman</span></div>
       </div>
     </div>
 
-    <!-- Complete Sunday Meeting Block with All Specific Organization Lessons -->
+    <!-- Schedule Timeline & Dynamic Lesson Links -->
     <div class="card section-anchor" id="schedule">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -762,7 +654,7 @@
         <span class="time-badge">10:30 – 11:30 am</span>
         <div>
           <div class="time-name">Sacrament Meeting</div>
-          <div class="time-sub">Chapel • Annual Primary Presentation</div>
+          <div class="time-sub">Chapel</div>
         </div>
       </div>
 
@@ -772,10 +664,9 @@
         <div style="width: 100%;">
           <div class="time-name">Sunday School & Primary Classes</div>
           <div class="time-sub">Sunday School & Primary curriculum:</div>
-          
-          <div class="class-grid">
-            <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-old-testament-2026/41?lang=eng" target="_blank" rel="noopener noreferrer">
-              <span>📖 Come, Follow Me (Isaiah 40–49)</span>
+          <div class="class-grid" id="block1Lessons">
+            <a class="lesson-link-btn" id="ssLessonBtn" href="https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-old-testament-2026/41?lang=eng" target="_blank" rel="noopener noreferrer">
+              <span id="ssLessonText">📖 Come, Follow Me (Isaiah 40–49)</span>
               <span>↗</span>
             </a>
           </div>
@@ -788,14 +679,13 @@
         <div style="width: 100%;">
           <div class="time-name">Priesthood, Relief Society & Youth</div>
           <div class="time-sub">Class and quorum discussions:</div>
-
-          <div class="class-grid">
-            <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/general-conference/2026/04/44rowe?lang=eng" target="_blank" rel="noopener noreferrer">
-              <span>📖 Elders Quorum & Relief Society (Brother Rowe)</span>
+          <div class="class-grid" id="block2Lessons">
+            <a class="lesson-link-btn" id="eqRsLessonBtn" href="https://www.churchofjesuschrist.org/study/general-conference/2026/04/44rowe?lang=eng" target="_blank" rel="noopener noreferrer">
+              <span id="eqRsLessonText">📖 Elders Quorum & Relief Society (Brother Rowe)</span>
               <span>↗</span>
             </a>
-            <a class="lesson-link-btn" href="https://www.churchofjesuschrist.org/study/manual/for-the-strength-of-youth/10-your-body-is-sacred?lang=eng" target="_blank" rel="noopener noreferrer">
-              <span>📖 Young Men & Young Women (Your Body Is Sacred)</span>
+            <a class="lesson-link-btn" id="youthLessonBtn" href="https://www.churchofjesuschrist.org/study/manual/for-the-strength-of-youth/10-your-body-is-sacred?lang=eng" target="_blank" rel="noopener noreferrer">
+              <span id="youthLessonText">📖 Young Men & Young Women (Your Body Is Sacred)</span>
               <span>↗</span>
             </a>
           </div>
@@ -910,13 +800,13 @@
       <div class="directory-row">
         <div>
           <div class="dir-role">Full-Time Missionaries</div>
-          <div class="dir-name">Elders Cureton, Jones & Morales</div>
+          <div class="dir-name" id="missionariesName">Elders Cureton, Jones & Morales</div>
         </div>
         <div class="dir-actions">
-          <a class="action-btn" href="tel:4062087377" title="Call Missionaries" aria-label="Call">
+          <a class="action-btn" id="missionaryCallBtn" href="tel:4062087377" title="Call Missionaries" aria-label="Call">
             <svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>
           </a>
-          <a class="action-btn" href="sms:4062087377" title="Text Missionaries" aria-label="Text">
+          <a class="action-btn" id="missionarySmsBtn" href="sms:4062087377" title="Text Missionaries" aria-label="Text">
             <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
           </a>
         </div>
@@ -929,78 +819,8 @@
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
         Weekly Announcements
       </div>
-
-<!-- Primary Program Practice -->
-      <div class="notice-item">
-        <div class="notice-tag">Primary Activity</div>
-        <div class="notice-title">Primary Program Practice</div>
-        <div class="notice-body">
-          Saturday, October 10th at 5:00 pm. Meet at the church for program rehearsal.
-        </div>
-      </div>
-      
-      <!-- Temple Cleaning Announcement with Direct Sign-Up Box -->
-      <div class="notice-item">
-        <div class="notice-tag" style="color:#0D9488;">Service Opportunity</div>
-        <div class="notice-title">Billings Temple Cleaning Assignment</div>
-        <div class="notice-body">
-          Our ward has been invited to assist with temple cleaning. Please volunteer for an upcoming shift using the online sign-up sheet.
-          <div class="signup-card">
-            <span class="signup-text">🧹 Saturday Cleaning Shift</span>
-            <a class="signup-btn" href="https://docs.google.com/spreadsheets/d/1IUpBZxJP3nB0fNF2eUmlUxW0LW_rul-J4uM_zIToFPA/edit?usp=sharing" target="_blank" rel="noopener noreferrer">Sign Up Sheet ↗</a>
-          </div>
-        </div>
-      </div>
-
-   <!-- Ward Talent Show & Cookout -->
-      <div class="notice-item">
-        <div class="notice-tag">Ward Activity</div>
-        <div class="notice-title">Ward Talent Show & Soup/Chili Cookout</div>
-        <div class="notice-body">
-          Friday, October 23rd at 6:00 pm in the cultural hall. Bring your favorite soup or chili to share and come enjoy our ward talents!
-          <div class="signup-card">
-            <span class="signup-text">🍲 Act & Food Sign-Up</span>
-            <a class="signup-btn" href="https://docs.google.com/spreadsheets/d/1cV_xLztoMbNNYwqS5GIl9D9BMSF1qU01cmVrgM-LFMU/edit?usp=sharing" target="_blank" rel="noopener noreferrer">Sign Up Sheet ↗</a>
-          </div>
-        </div>
-      </div>
-
-      <!-- Trunk or Treat -->
-      <div class="notice-item">
-        <div class="notice-tag">Youth & Primary Activity</div>
-        <div class="notice-title">Annual Trunk or Treat</div>
-        <div class="notice-body">
-          Friday, October 30th at 6:00 pm in the church parking lot. Decorate a trunk, wear your family-friendly costumes, and join us for treats and fun!
-        </div>
-      </div>
-
-      <!-- Building Cleaning & Snow Removal Assignment -->
-      <div class="notice-item">
-        <div class="notice-tag" style="color:#0D9488;">Ward Assignment</div>
-        <div class="notice-title">Church Cleaning & Snow Removal (October)</div>
-        <div class="notice-body">
-          Our ward has the assignment for meetinghouse cleaning and snow removal for the entire month of October. Please check with your quorum or auxiliary leaders for assigned dates and times to help keep our building clean and safe.
-        </div>
-      </div>
-      
-      <!-- BYU Pathway Item -->
-      <div class="notice-item">
-        <div class="notice-tag">Education</div>
-        <div class="notice-title">BYU Pathway Worldwide</div>
-        <div class="notice-body">
-          Registration closes October 19 (classes start Oct 26). Contact Service Missionary Reed Christensen at <a class="text-link" href="tel:4068508078">(406) 850–8078</a> for help registering.
-        </div>
-      </div>
-
-      <!-- Addiction Recovery Item -->
-      <div class="notice-item">
-        <div class="notice-tag">Support Group</div>
-        <div class="notice-title">Addiction Recovery Meetings</div>
-        <div class="notice-body">
-          • Men's Recovery: Tuesdays 7:00 pm @ Monad Building<br>
-          • General Addiction: Tuesdays 7:00 pm @ East Stake Center<br>
-          Visit <a class="text-link" href="https://addictionrecovery.churchofjesuschrist.org" target="_blank" rel="noopener noreferrer">addictionrecovery.churchofjesuschrist.org</a> for details.
-        </div>
+      <div id="announcementsList">
+        <!-- Loaded dynamically from Google Sheet 'Announcements' tab -->
       </div>
     </div>
 
@@ -1027,6 +847,7 @@
   </nav>
 
   <script>
+    // Navigation scroll
     function scrollToId(targetId, event) {
       if (event) event.preventDefault();
       var el = document.getElementById(targetId);
@@ -1037,6 +858,7 @@
       }
     }
 
+    // Theme toggle
     var toggleBtn = document.getElementById('themeToggle');
     if (toggleBtn) {
       toggleBtn.addEventListener('click', function() {
@@ -1045,6 +867,183 @@
         document.documentElement.setAttribute('data-theme', next);
       });
     }
+
+    // ==========================================
+    // GOOGLE SHEETS HEADLESS CMS ENGINE
+    // ==========================================
+    var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
+
+    // Helper: Parse Google Visualization API CSV
+    function parseCSV(text) {
+      var lines = text.trim().split('\n');
+      return lines.map(function(line) {
+        var row = [];
+        var inQuotes = false;
+        var token = '';
+        for (var i = 0; i < line.length; i++) {
+          var char = line[i];
+          if (char === '"') {
+            if (inQuotes && line[i + 1] === '"') {
+              token += '"';
+              i++;
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === ',' && !inQuotes) {
+            row.push(token.trim());
+            token = '';
+          } else {
+            token += char;
+          }
+        }
+        row.push(token.trim());
+        return row;
+      });
+    }
+
+    function fetchTab(sheetName) {
+      var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(sheetName);
+      return fetch(url)
+        .then(function(res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.text();
+        })
+        .then(function(csvText) {
+          return parseCSV(csvText);
+        });
+    }
+
+    // Load CMS Data
+    function loadBulletinFromSheets() {
+      // 1. General Tab
+      fetchTab('General')
+        .then(function(rows) {
+          var data = {};
+          rows.forEach(function(row) {
+            if (row[0]) data[row[0].trim()] = row[1] ? row[1].trim() : '';
+          });
+
+          if (data.Date) document.getElementById('bulletinDate').textContent = data.Date;
+          if (data.Scripture_Quote) document.getElementById('scriptureQuote').textContent = '“' + data.Scripture_Quote.replace(/^["“]|["”]$/g, '') + '”';
+          if (data.Scripture_Citation) document.getElementById('scriptureCitation').textContent = data.Scripture_Citation;
+
+          if (data.Broadcast_URL) {
+            var bLink = document.getElementById('broadcastLink');
+            bLink.href = data.Broadcast_URL;
+            document.getElementById('broadcastContainer').style.display = 'flex';
+          }
+
+          if (data.SS_Primary_Lesson_Text && data.SS_Primary_Lesson_URL) {
+            document.getElementById('ssLessonText').textContent = data.SS_Primary_Lesson_Text;
+            document.getElementById('ssLessonBtn').href = data.SS_Primary_Lesson_URL;
+          }
+
+          if (data.EQ_RS_Lesson_Text && data.EQ_RS_Lesson_URL) {
+            document.getElementById('eqRsLessonText').textContent = data.EQ_RS_Lesson_Text;
+            document.getElementById('eqRsLessonBtn').href = data.EQ_RS_Lesson_URL;
+          }
+
+          if (data.Youth_Lesson_Text && data.Youth_Lesson_URL) {
+            document.getElementById('youthLessonText').textContent = data.Youth_Lesson_Text;
+            document.getElementById('youthLessonBtn').href = data.Youth_Lesson_URL;
+          }
+
+          if (data.Missionaries_Name) {
+            document.getElementById('missionariesName').textContent = data.Missionaries_Name;
+          }
+          if (data.Missionaries_Phone) {
+            document.getElementById('missionaryCallBtn').href = 'tel:' + data.Missionaries_Phone.replace(/\D/g, '');
+            document.getElementById('missionarySmsBtn').href = 'sms:' + data.Missionaries_Phone.replace(/\D/g, '');
+          }
+        })
+        .catch(function(err) {
+          console.warn('Could not load General tab:', err);
+        });
+
+      // 2. Program Tab
+      fetchTab('Program')
+        .then(function(rows) {
+          if (!rows || rows.length < 2) return;
+          var container = document.getElementById('programList');
+          container.innerHTML = '';
+
+          // Skip header row (Label, Person/Details, Link)
+          for (var i = 1; i < rows.length; i++) {
+            var row = rows[i];
+            var label = row[0] ? row[0].trim() : '';
+            var details = row[1] ? row[1].trim() : '';
+            var link = row[2] ? row[2].trim() : '';
+
+            if (!label && !details) continue;
+
+            var itemDiv = document.createElement('div');
+            itemDiv.className = 'program-item';
+
+            if (link) {
+              // Item with link (hymn pill or special link)
+              itemDiv.innerHTML = '<div>' +
+                '<div class="program-label">' + label + '</div>' +
+                '<div style="font-size:12px;color:var(--text-muted);">' + details + '</div>' +
+                '</div>' +
+                '<a class="hymn-link" href="' + link + '" target="_blank" rel="noopener noreferrer">↗ Open</a>';
+            } else {
+              itemDiv.innerHTML = '<span class="program-label">' + label + '</span>' +
+                '<span class="program-val">' + details + '</span>';
+            }
+
+            container.appendChild(itemDiv);
+          }
+        })
+        .catch(function(err) {
+          console.warn('Could not load Program tab:', err);
+        });
+
+      // 3. Announcements Tab
+      fetchTab('Announcements')
+        .then(function(rows) {
+          if (!rows || rows.length < 2) return;
+          var container = document.getElementById('announcementsList');
+          container.innerHTML = '';
+
+          // Skip header row (Tag, Title, Body, Action_Text, Action_URL)
+          for (var i = 1; i < rows.length; i++) {
+            var row = rows[i];
+            var tag = row[0] ? row[0].trim() : '';
+            var title = row[1] ? row[1].trim() : '';
+            var body = row[2] ? row[2].trim() : '';
+            var actionText = row[3] ? row[3].trim() : '';
+            var actionUrl = row[4] ? row[4].trim() : '';
+
+            if (!title && !body) continue;
+
+            var noticeDiv = document.createElement('div');
+            noticeDiv.className = 'notice-item';
+
+            var html = '';
+            if (tag) html += '<div class="notice-tag">' + tag + '</div>';
+            if (title) html += '<div class="notice-title">' + title + '</div>';
+            if (body) html += '<div class="notice-body">' + body;
+
+            if (actionText && actionUrl) {
+              html += '<div class="signup-card">' +
+                '<span class="signup-text">' + actionText + '</span>' +
+                '<a class="signup-btn" href="' + actionUrl + '" target="_blank" rel="noopener noreferrer">Open Link ↗</a>' +
+                '</div>';
+            }
+
+            if (body) html += '</div>';
+
+            noticeDiv.innerHTML = html;
+            container.appendChild(noticeDiv);
+          }
+        })
+        .catch(function(err) {
+          console.warn('Could not load Announcements tab:', err);
+        });
+    }
+
+    // Initialize CMS loading on start
+    document.addEventListener('DOMContentLoaded', loadBulletinFromSheets);
   </script>
 </body>
 </html>
