@@ -162,7 +162,7 @@
       border-radius: 20px;
     }
 
-    /* Sacred Scripture Frame - Old Testament */
+    /* Sacred Scripture / Weekly Media Frame */
     .sacred-frame {
       margin-top: 18px;
       position: relative;
@@ -170,20 +170,29 @@
       overflow: hidden;
       background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      min-height: 220px;
+      min-height: 200px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 22px 18px;
+      padding: 20px 16px;
       text-align: center;
     }
 
+    .weekly-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      display: none;
+    }
+
     .sacred-svg {
-      width: 72px;
-      height: 72px;
+      width: 64px;
+      height: 64px;
       color: #93C5FD;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
       opacity: 0.95;
     }
 
@@ -191,9 +200,9 @@
       font-family: 'Playfair Display', serif;
       font-style: italic;
       color: #F8FAFC;
-      font-size: 16px;
+      font-size: 15.5px;
       line-height: 1.45;
-      max-width: 310px;
+      max-width: 320px;
     }
 
     .sacred-citation {
@@ -205,7 +214,7 @@
       margin-top: 10px;
     }
 
-    /* Broadcast / Zoom Callout */
+    /* Broadcast Callout */
     .broadcast-card {
       background: var(--primary-light);
       border: 1px solid rgba(30, 58, 138, 0.15);
@@ -311,7 +320,6 @@
       text-align: right;
     }
 
-    /* Hymn Pill */
     .hymn-link {
       display: inline-flex;
       align-items: center;
@@ -395,7 +403,7 @@
       color: var(--accent);
     }
 
-    /* Directory / Get in Touch Rows */
+    /* Directory Rows */
     .directory-row {
       display: flex;
       justify-content: space-between;
@@ -490,7 +498,6 @@
       line-height: 1.45;
     }
 
-    /* Special Action Box (Signups) */
     .signup-card {
       background: var(--accent-light);
       border: 1px solid rgba(13, 148, 136, 0.2);
@@ -518,7 +525,7 @@
       white-space: nowrap;
     }
 
-    /* Bottom Nav Bar */
+    /* Bottom Nav */
     .bottom-bar {
       position: fixed;
       bottom: 14px;
@@ -581,7 +588,7 @@
         Echo Canyon Ward
       </div>
       <button class="theme-toggle-btn" id="themeToggle" title="Toggle Chapel Reverence / Dark Mode">
-        <svg id="moonIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg id="moonIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       </button>
     </div>
 
@@ -591,9 +598,10 @@
       <p class="church-sub">The Church of Jesus Christ of Latter-day Saints</p>
       <div class="date-badge" id="bulletinDate">Sunday, October 11, 2026</div>
 
-      <!-- Old Testament Scripture Header (Dynamic from Sheet) -->
+      <!-- Sacred Frame with Picture of the Week support -->
       <div class="sacred-frame">
-        <svg class="sacred-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+        <img id="weeklyImg" class="weekly-img" alt="Media of the Week">
+        <svg id="sacredSvg" class="sacred-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
           <path d="M12 3v18"></path>
           <path d="M12 4c-4.5 3-9 2-10 8 3-1 6-1 10-1"></path>
           <path d="M12 4c4.5 3 9 2 10 8-3-1-6-1-10-1"></path>
@@ -629,131 +637,29 @@
         <div class="program-item"><span class="program-label">Presiding</span><span class="program-val">Bishop Jed Walker</span></div>
         <div class="program-item"><span class="program-label">Conducting</span><span class="program-val">Scott Worthington</span></div>
         <div class="program-item"><span class="program-label">Music Leader</span><span class="program-val">Sarah May</span></div>
-        <div class="program-item"><span class="program-label">Organist</span><span class="program-val">Jamie Holiday</span></div>
+        <div class="program-item"><span class="program-label">Organist</span><span class="program-val">Callie Beachman</span></div>
       </div>
     </div>
 
-    <!-- Schedule Timeline & Dynamic Lesson Links -->
+    <!-- Fully Dynamic Meeting Block & Lesson Schedule from 'Schedule' Tab -->
     <div class="card section-anchor" id="schedule">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         Meeting Block & Lesson Schedule
       </div>
-
-      <!-- 1st Hour: Sacrament -->
-      <div class="time-slot">
-        <span class="time-badge">10:30 – 11:30 am</span>
-        <div>
-          <div class="time-name">Sacrament Meeting</div>
-          <div class="time-sub">Chapel</div>
-        </div>
-      </div>
-
-      <!-- 2nd Hour Block 1: Sunday School & Primary -->
-      <div class="time-slot">
-        <span class="time-badge">11:35 – 12:00 pm</span>
-        <div style="width: 100%;">
-          <div class="time-name">Sunday School & Primary Classes</div>
-          <div class="time-sub">Sunday School & Primary curriculum:</div>
-          <div class="class-grid" id="block1Lessons">
-            <a class="lesson-link-btn" id="ssLessonBtn" href="https://www.churchofjesuschrist.org/study/manual/come-follow-me-for-home-and-church-old-testament-2026/41?lang=eng" target="_blank" rel="noopener noreferrer">
-              <span id="ssLessonText">📖 Come, Follow Me </span>
-              <span>↗</span>
-            </a>
-          </div>
-        </div>
-      </div>
-
-      <!-- 2nd Hour Block 2: Quorums & Classes -->
-      <div class="time-slot">
-        <span class="time-badge">12:05 – 12:30 pm</span>
-        <div style="width: 100%;">
-          <div class="time-name">Priesthood, Relief Society & Youth</div>
-          <div class="time-sub">Class and quorum discussions:</div>
-          <div class="class-grid" id="block2Lessons">
-            <a class="lesson-link-btn" id="eqRsLessonBtn" href="https://www.churchofjesuschrist.org/study/general-conference/2026/04/44rowe?lang=eng" target="_blank" rel="noopener noreferrer">
-              <span id="eqRsLessonText">📖 Elders Quorum & Relief Society </span>
-              <span>↗</span>
-            </a>
-            <a class="lesson-link-btn" id="youthLessonBtn" href="https://www.churchofjesuschrist.org/study/manual/for-the-strength-of-youth/10-your-body-is-sacred?lang=eng" target="_blank" rel="noopener noreferrer">
-              <span id="youthLessonText">📖 Young Men & Young Women </span>
-              <span>↗</span>
-            </a>
-          </div>
-        </div>
+      <div id="scheduleTimeline">
+        <!-- Loaded dynamically from Google Sheet 'Schedule' tab -->
       </div>
     </div>
 
-    <!-- Get in Touch Section (Dynamic from Sheet 'Directory' Tab with Fallback) -->
+    <!-- Get in Touch Section (Dynamic from Sheet 'Directory' Tab) -->
     <div class="card section-anchor" id="contact">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
         Get in Touch
       </div>
-
       <div id="directoryList">
-        <!-- Bishop -->
-        <div class="directory-row">
-          <div><div class="dir-role">Bishop</div><div class="dir-name">Jed Walker</div></div>
-          <div class="dir-actions">
-            <a class="action-btn" href="tel:4066961670" title="Call" aria-label="Call"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>
-            <a class="action-btn" href="sms:4066961670" title="Text" aria-label="Text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>
-          </div>
-        </div>
-
-        <!-- 1st Counselor -->
-        <div class="directory-row">
-          <div><div class="dir-role">1st Counselor</div><div class="dir-name">Kyle Wassmer</div></div>
-          <div class="dir-actions">
-            <a class="action-btn" href="tel:4066988526" title="Call" aria-label="Call"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>
-            <a class="action-btn" href="sms:4066988526" title="Text" aria-label="Text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>
-          </div>
-        </div>
-
-        <!-- 2nd Counselor -->
-        <div class="directory-row">
-          <div><div class="dir-role">2nd Counselor</div><div class="dir-name">Scott Worthington</div></div>
-          <div class="dir-actions">
-            <a class="action-btn" href="tel:4065914355" title="Call" aria-label="Call"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>
-            <a class="action-btn" href="sms:4065914355" title="Text" aria-label="Text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>
-          </div>
-        </div>
-
-        <!-- Ward Clerk -->
-        <div class="directory-row">
-          <div><div class="dir-role">Ward Clerk</div><div class="dir-name">Ryan Hecht</div></div>
-          <div class="dir-actions">
-            <a class="action-btn" href="tel:4065980520" title="Call" aria-label="Call"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>
-            <a class="action-btn" href="sms:4065980520" title="Text" aria-label="Text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>
-          </div>
-        </div>
-
-        <!-- Executive Secretary -->
-        <div class="directory-row">
-          <div><div class="dir-role">Executive Secretary</div><div class="dir-name">Ryan Oblander</div></div>
-          <div class="dir-actions">
-            <a class="action-btn" href="tel:4065917782" title="Call" aria-label="Call"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>
-            <a class="action-btn" href="sms:4065917782" title="Text" aria-label="Text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>
-          </div>
-        </div>
-
-        <!-- Bulletin Specialist -->
-        <div class="directory-row">
-          <div><div class="dir-role">Bulletin Specialist</div><div class="dir-name">Linda Wing</div></div>
-          <div class="dir-actions">
-            <a class="action-btn" href="tel:4066907330" title="Call" aria-label="Call"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>
-            <a class="action-btn" href="sms:4066907330" title="Text" aria-label="Text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>
-          </div>
-        </div>
-
-        <!-- Full-time Missionaries -->
-        <div class="directory-row">
-          <div><div class="dir-role">Full-Time Missionaries</div><div class="dir-name">Elders Cureton, Jones & Morales</div></div>
-          <div class="dir-actions">
-            <a class="action-btn" href="tel:4062087377" title="Call" aria-label="Call"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>
-            <a class="action-btn" href="sms:4062087377" title="Text" aria-label="Text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>
-          </div>
-        </div>
+        <!-- Loaded dynamically from Google Sheet 'Directory' tab -->
       </div>
     </div>
 
@@ -770,7 +676,7 @@
 
   </div>
 
-  <!-- Bottom Floating Navigation using Native Hyperlinks & JS fallback -->
+  <!-- Bottom Floating Navigation -->
   <nav class="bottom-bar" aria-label="Quick Navigation">
     <a href="#program" class="nav-link" onclick="scrollToId('program', event)">
       <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -811,7 +717,7 @@
     }
 
     // ==========================================
-    // JSONP GOOGLE SHEETS ENGINE (ZERO CORS BLOCKING)
+    // ROBUST SHEET ENGINE (IPAD COMPATIBLE)
     // ==========================================
     var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
 
@@ -830,13 +736,10 @@
       var script = document.createElement('script');
       var cacheBuster = Date.now();
       script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
-      script.onerror = function() {
-        console.warn('Failed to load Google Sheet tab: ' + sheetName);
-      };
       document.body.appendChild(script);
     }
 
-    // 1. General Tab Handler
+    // 1. General Tab
     window.handleGeneral = function(response) {
       var rows = extractTable(response);
       var data = {};
@@ -848,29 +751,22 @@
       if (data['scripture_quote']) document.getElementById('scriptureQuote').textContent = '“' + data['scripture_quote'].replace(/^["“]|["”]$/g, '') + '”';
       if (data['scripture_citation']) document.getElementById('scriptureCitation').textContent = data['scripture_citation'];
 
+      // Optional Weekly Picture
+      if (data['weekly_image_url']) {
+        var img = document.getElementById('weeklyImg');
+        img.src = data['weekly_image_url'];
+        img.style.display = 'block';
+        document.getElementById('sacredSvg').style.display = 'none';
+      }
+
       if (data['broadcast_url']) {
         var bLink = document.getElementById('broadcastLink');
         bLink.href = data['broadcast_url'];
         document.getElementById('broadcastContainer').style.display = 'flex';
       }
-
-      if (data['ss_primary_lesson_text'] && data['ss_primary_lesson_url']) {
-        document.getElementById('ssLessonText').textContent = data['ss_primary_lesson_text'];
-        document.getElementById('ssLessonBtn').href = data['ss_primary_lesson_url'];
-      }
-
-      if (data['eq_rs_lesson_text'] && data['eq_rs_lesson_url']) {
-        document.getElementById('eqRsLessonText').textContent = data['eq_rs_lesson_text'];
-        document.getElementById('eqRsLessonBtn').href = data['eq_rs_lesson_url'];
-      }
-
-      if (data['youth_lesson_text'] && data['youth_lesson_url']) {
-        document.getElementById('youthLessonText').textContent = data['youth_lesson_text'];
-        document.getElementById('youthLessonBtn').href = data['youth_lesson_url'];
-      }
     };
 
-    // 2. Program Tab Handler
+    // 2. Program Tab
     window.handleProgram = function(response) {
       var rows = extractTable(response);
       if (!rows || rows.length < 1) return;
@@ -908,7 +804,116 @@
       }
     };
 
-    // 3. Announcements Tab Handler
+    // 3. Schedule Tab (Full Control)
+    window.handleSchedule = function(response) {
+      var rows = extractTable(response);
+      if (!rows || rows.length < 1) return;
+      var container = document.getElementById('scheduleTimeline');
+      container.innerHTML = '';
+
+      var startIdx = 0;
+      if (rows[0][0] && rows[0][0].toLowerCase() === 'time') {
+        startIdx = 1;
+      }
+
+      // Group rows by Time + Title
+      var blocks = [];
+      var blockMap = {};
+
+      for (var i = startIdx; i < rows.length; i++) {
+        var time = rows[i][0] || '';
+        var title = rows[i][1] || '';
+        var sub = rows[i][2] || '';
+        var linkText = rows[i][3] || '';
+        var linkUrl = rows[i][4] || '';
+
+        if (!time && !title) continue;
+
+        var key = time + '___' + title;
+        if (!blockMap[key]) {
+          var newBlock = { time: time, title: title, sub: sub, links: [] };
+          blockMap[key] = newBlock;
+          blocks.push(newBlock);
+        }
+
+        if (linkText && linkUrl) {
+          blockMap[key].links.push({ text: linkText, url: linkUrl });
+        }
+      }
+
+      blocks.forEach(function(b) {
+        var slotDiv = document.createElement('div');
+        slotDiv.className = 'time-slot';
+
+        var linksHtml = '';
+        if (b.links.length > 0) {
+          linksHtml = '<div class="class-grid">';
+          b.links.forEach(function(l) {
+            linksHtml += '<a class="lesson-link-btn" href="' + l.url + '" target="_blank" rel="noopener noreferrer">' +
+              '<span>' + l.text + '</span><span>↗</span></a>';
+          });
+          linksHtml += '</div>';
+        }
+
+        slotDiv.innerHTML = '<span class="time-badge">' + b.time + '</span>' +
+          '<div style="width:100%;">' +
+          '<div class="time-name">' + b.title + '</div>' +
+          (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') +
+          linksHtml +
+          '</div>';
+
+        container.appendChild(slotDiv);
+      });
+    };
+
+    // 4. Directory Tab
+    window.handleDirectory = function(response) {
+      var rows = extractTable(response);
+      if (!rows || rows.length < 1) return;
+      var container = document.getElementById('directoryList');
+
+      var startIdx = 0;
+      if (rows[0][0] && (rows[0][0].toLowerCase() === 'role' || rows[0][0].toLowerCase() === 'position')) {
+        startIdx = 1;
+      }
+
+      if (rows.length > startIdx) {
+        container.innerHTML = '';
+      }
+
+      for (var i = startIdx; i < rows.length; i++) {
+        var role = rows[i][0] || '';
+        var name = rows[i][1] || '';
+        var phone = rows[i][2] || '';
+
+        if (!role && !name) continue;
+
+        var cleanPhone = phone.replace(/\D/g, '');
+        var rowDiv = document.createElement('div');
+        rowDiv.className = 'directory-row';
+
+        var actionsHtml = '';
+        if (cleanPhone) {
+          actionsHtml = '<div class="dir-actions">' +
+            '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
+            '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
+            '</a>' +
+            '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
+            '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
+            '</a>' +
+            '</div>';
+        }
+
+        rowDiv.innerHTML = '<div>' +
+          '<div class="dir-role">' + role + '</div>' +
+          '<div class="dir-name">' + name + '</div>' +
+          '</div>' + actionsHtml;
+
+        container.appendChild(rowDiv);
+      }
+    };
+
+    // 5. Announcements Tab
     window.handleAnnouncements = function(response) {
       var rows = extractTable(response);
       if (!rows || rows.length < 1) return;
@@ -921,12 +926,11 @@
       }
 
       for (var i = startIdx; i < rows.length; i++) {
-        var row = rows[i];
-        var tag = row[0] || '';
-        var title = row[1] || '';
-        var body = row[2] || '';
-        var actionText = row[3] || '';
-        var actionUrl = row[4] || '';
+        var tag = rows[i][0] || '';
+        var title = rows[i][1] || '';
+        var body = rows[i][2] || '';
+        var actionText = rows[i][3] || '';
+        var actionUrl = rows[i][4] || '';
 
         if (!title && !body) continue;
 
@@ -952,60 +956,13 @@
       }
     };
 
-    // 4. Directory Tab Handler (Get in Touch)
-    window.handleDirectory = function(response) {
-      var rows = extractTable(response);
-      if (!rows || rows.length < 1) return;
-      var container = document.getElementById('directoryList');
-
-      var startIdx = 0;
-      if (rows[0][0] && (rows[0][0].toLowerCase() === 'role' || rows[0][0].toLowerCase() === 'position')) {
-        startIdx = 1;
-      }
-
-      if (rows.length > startIdx) {
-        container.innerHTML = '';
-      }
-
-      for (var i = startIdx; i < rows.length; i++) {
-        var row = rows[i];
-        var role = row[0] || '';
-        var name = row[1] || '';
-        var phone = row[2] || '';
-
-        if (!role && !name) continue;
-
-        var cleanPhone = phone.replace(/\\D/g, '');
-        var rowDiv = document.createElement('div');
-        rowDiv.className = 'directory-row';
-
-        var actionsHtml = '';
-        if (cleanPhone) {
-          actionsHtml = '<div class="dir-actions">' +
-            '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
-            '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
-            '</a>' +
-            '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
-            '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
-            '</a>' +
-            '</div>';
-        }
-
-        rowDiv.innerHTML = '<div>' +
-          '<div class="dir-role">' + role + '</div>' +
-          '<div class="dir-name">' + name + '</div>' +
-          '</div>' + actionsHtml;
-
-        container.appendChild(rowDiv);
-      }
-    };
-
-    // Trigger JSONP requests
+    // Sequence tabs cleanly for iPad browser stability
     document.addEventListener('DOMContentLoaded', function() {
       loadScript('General', 'handleGeneral');
       loadScript('Program', 'handleProgram');
-      loadScript('Announcements', 'handleAnnouncements');
+      loadScript('Schedule', 'handleSchedule');
       loadScript('Directory', 'handleDirectory');
+      loadScript('Announcements', 'handleAnnouncements');
     });
   </script>
 </body>
