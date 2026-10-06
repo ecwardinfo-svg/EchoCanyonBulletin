@@ -518,13 +518,6 @@
       white-space: nowrap;
     }
 
-    .text-link {
-      color: var(--primary);
-      font-weight: 600;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
     /* Bottom Nav Bar */
     .bottom-bar {
       position: fixed;
@@ -865,179 +858,161 @@
     }
 
     // ==========================================
-    // ROBUST GOOGLE SHEETS ENGINE (CACHE-BUSTING)
+    // JSONP GOOGLE SHEETS ENGINE (ZERO CORS BLOCKING)
     // ==========================================
     var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
 
-    function parseCSV(text) {
-      var lines = text.trim().split(/\r?\n/);
-      return lines.map(function(line) {
-        var row = [];
-        var inQuotes = false;
-        var token = '';
-        for (var i = 0; i < line.length; i++) {
-          var char = line[i];
-          if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-              token += '"';
-              i++;
-            } else {
-              inQuotes = !inQuotes;
-            }
-          } else if (char === ',' && !inQuotes) {
-            row.push(token.trim());
-            token = '';
-          } else {
-            token += char;
-          }
-        }
-        row.push(token.trim());
-        return row;
+    function extractTable(jsonObj) {
+      if (!jsonObj || !jsonObj.table || !jsonObj.table.rows) return [];
+      return jsonObj.table.rows.map(function(row) {
+        if (!row || !row.c) return [];
+        return row.c.map(function(cell) {
+          if (!cell || cell.v === null || cell.v === undefined) return '';
+          return String(cell.v).trim();
+        });
       });
     }
 
-    function fetchTab(sheetName) {
-      // Append unique timestamp to bypass any browser or proxy cache
+    function loadScript(sheetName, callbackName) {
+      var script = document.createElement('script');
       var cacheBuster = Date.now();
-      var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(sheetName) + '&_t=' + cacheBuster;
-      
-      return fetch(url, { cache: 'no-store' })
-        .then(function(res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.text();
-        })
-        .then(function(csvText) {
-          return parseCSV(csvText);
-        });
+      script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
+      script.onerror = function() {
+        console.warn('Failed to load Google Sheet tab: ' + sheetName);
+      };
+      document.body.appendChild(script);
     }
 
-    function loadBulletinFromSheets() {
-      // 1. General Tab
-      fetchTab('General')
-        .then(function(rows) {
-          var data = {};
-          rows.forEach(function(row) {
-            if (row[0]) data[row[0].trim().toLowerCase()] = row[1] ? row[1].trim() : '';
-          });
+    // 1. General Tab Handler
+    window.handleGeneral = function(response) {
+      var rows = extractTable(response);
+      var data = {};
+      rows.forEach(function(row) {
+        if (row[0]) data[row[0].toLowerCase()] = row[1] || '';
+      });
 
-          // Match case-insensitively
-          if (data['date']) document.getElementById('bulletinDate').textContent = data['date'];
-          if (data['scripture_quote']) document.getElementById('scriptureQuote').textContent = '“' + data['scripture_quote'].replace(/^["“]|["”]$/g, '') + '”';
-          if (data['scripture_citation']) document.getElementById('scriptureCitation').textContent = data['scripture_citation'];
+      if (data['date']) document.getElementById('bulletinDate').textContent = data['date'];
+      if (data['scripture_quote']) document.getElementById('scriptureQuote').textContent = '“' + data['scripture_quote'].replace(/^["“]|["”]$/g, '') + '”';
+      if (data['scripture_citation']) document.getElementById('scriptureCitation').textContent = data['scripture_citation'];
 
-          if (data['broadcast_url']) {
-            var bLink = document.getElementById('broadcastLink');
-            bLink.href = data['broadcast_url'];
-            document.getElementById('broadcastContainer').style.display = 'flex';
-          }
+      if (data['broadcast_url']) {
+        var bLink = document.getElementById('broadcastLink');
+        bLink.href = data['broadcast_url'];
+        document.getElementById('broadcastContainer').style.display = 'flex';
+      }
 
-          if (data['ss_primary_lesson_text'] && data['ss_primary_lesson_url']) {
-            document.getElementById('ssLessonText').textContent = data['ss_primary_lesson_text'];
-            document.getElementById('ssLessonBtn').href = data['ss_primary_lesson_url'];
-          }
+      if (data['ss_primary_lesson_text'] && data['ss_primary_lesson_url']) {
+        document.getElementById('ssLessonText').textContent = data['ss_primary_lesson_text'];
+        document.getElementById('ssLessonBtn').href = data['ss_primary_lesson_url'];
+      }
 
-          if (data['eq_rs_lesson_text'] && data['eq_rs_lesson_url']) {
-            document.getElementById('eqRsLessonText').textContent = data['eq_rs_lesson_text'];
-            document.getElementById('eqRsLessonBtn').href = data['eq_rs_lesson_url'];
-          }
+      if (data['eq_rs_lesson_text'] && data['eq_rs_lesson_url']) {
+        document.getElementById('eqRsLessonText').textContent = data['eq_rs_lesson_text'];
+        document.getElementById('eqRsLessonBtn').href = data['eq_rs_lesson_url'];
+      }
 
-          if (data['youth_lesson_text'] && data['youth_lesson_url']) {
-            document.getElementById('youthLessonText').textContent = data['youth_lesson_text'];
-            document.getElementById('youthLessonBtn').href = data['youth_lesson_url'];
-          }
+      if (data['youth_lesson_text'] && data['youth_lesson_url']) {
+        document.getElementById('youthLessonText').textContent = data['youth_lesson_text'];
+        document.getElementById('youthLessonBtn').href = data['youth_lesson_url'];
+      }
 
-          if (data['missionaries_name']) {
-            document.getElementById('missionariesName').textContent = data['missionaries_name'];
-          }
-          if (data['missionaries_phone']) {
-            document.getElementById('missionaryCallBtn').href = 'tel:' + data['missionaries_phone'].replace(/\D/g, '');
-            document.getElementById('missionarySmsBtn').href = 'sms:' + data['missionaries_phone'].replace(/\D/g, '');
-          }
-        })
-        .catch(function(err) {
-          console.warn('Google Sheet General Tab could not be read. Ensure File > Share > Publish to web is active.', err);
-        });
+      if (data['missionaries_name']) {
+        document.getElementById('missionariesName').textContent = data['missionaries_name'];
+      }
+      if (data['missionaries_phone']) {
+        document.getElementById('missionaryCallBtn').href = 'tel:' + data['missionaries_phone'].replace(/\D/g, '');
+        document.getElementById('missionarySmsBtn').href = 'sms:' + data['missionaries_phone'].replace(/\D/g, '');
+      }
+    };
 
-      // 2. Program Tab
-      fetchTab('Program')
-        .then(function(rows) {
-          if (!rows || rows.length < 2) return;
-          var container = document.getElementById('programList');
-          container.innerHTML = '';
+    // 2. Program Tab Handler
+    window.handleProgram = function(response) {
+      var rows = extractTable(response);
+      if (!rows || rows.length < 1) return;
+      var container = document.getElementById('programList');
+      container.innerHTML = '';
 
-          for (var i = 1; i < rows.length; i++) {
-            var row = rows[i];
-            var label = row[0] ? row[0].trim() : '';
-            var details = row[1] ? row[1].trim() : '';
-            var link = row[2] ? row[2].trim() : '';
+      var startIdx = 0;
+      if (rows[0][0] && (rows[0][0].toLowerCase() === 'label' || rows[0][0].toLowerCase() === 'item')) {
+        startIdx = 1;
+      }
 
-            if (!label && !details) continue;
+      for (var i = startIdx; i < rows.length; i++) {
+        var row = rows[i];
+        var label = row[0] || '';
+        var details = row[1] || '';
+        var link = row[2] || '';
 
-            var itemDiv = document.createElement('div');
-            itemDiv.className = 'program-item';
+        if (!label && !details) continue;
 
-            if (link) {
-              itemDiv.innerHTML = '<div>' +
-                '<div class="program-label">' + label + '</div>' +
-                '<div style="font-size:12px;color:var(--text-muted);">' + details + '</div>' +
-                '</div>' +
-                '<a class="hymn-link" href="' + link + '" target="_blank" rel="noopener noreferrer">↗ Open</a>';
-            } else {
-              itemDiv.innerHTML = '<span class="program-label">' + label + '</span>' +
-                '<span class="program-val">' + details + '</span>';
-            }
+        var itemDiv = document.createElement('div');
+        itemDiv.className = 'program-item';
 
-            container.appendChild(itemDiv);
-          }
-        })
-        .catch(function(err) {
-          console.warn('Google Sheet Program Tab could not be read.', err);
-        });
+        if (link) {
+          itemDiv.innerHTML = '<div>' +
+            '<div class="program-label">' + label + '</div>' +
+            '<div style="font-size:12px;color:var(--text-muted);">' + details + '</div>' +
+            '</div>' +
+            '<a class="hymn-link" href="' + link + '" target="_blank" rel="noopener noreferrer">↗ Open</a>';
+        } else {
+          itemDiv.innerHTML = '<span class="program-label">' + label + '</span>' +
+            '<span class="program-val">' + details + '</span>';
+        }
 
-      // 3. Announcements Tab
-      fetchTab('Announcements')
-        .then(function(rows) {
-          if (!rows || rows.length < 2) return;
-          var container = document.getElementById('announcementsList');
-          container.innerHTML = '';
+        container.appendChild(itemDiv);
+      }
+    };
 
-          for (var i = 1; i < rows.length; i++) {
-            var row = rows[i];
-            var tag = row[0] ? row[0].trim() : '';
-            var title = row[1] ? row[1].trim() : '';
-            var body = row[2] ? row[2].trim() : '';
-            var actionText = row[3] ? row[3].trim() : '';
-            var actionUrl = row[4] ? row[4].trim() : '';
+    // 3. Announcements Tab Handler
+    window.handleAnnouncements = function(response) {
+      var rows = extractTable(response);
+      if (!rows || rows.length < 1) return;
+      var container = document.getElementById('announcementsList');
+      container.innerHTML = '';
 
-            if (!title && !body) continue;
+      var startIdx = 0;
+      if (rows[0][1] && (rows[0][1].toLowerCase() === 'title' || rows[0][0].toLowerCase() === 'tag')) {
+        startIdx = 1;
+      }
 
-            var noticeDiv = document.createElement('div');
-            noticeDiv.className = 'notice-item';
+      for (var i = startIdx; i < rows.length; i++) {
+        var row = rows[i];
+        var tag = row[0] || '';
+        var title = row[1] || '';
+        var body = row[2] || '';
+        var actionText = row[3] || '';
+        var actionUrl = row[4] || '';
 
-            var html = '';
-            if (tag) html += '<div class="notice-tag">' + tag + '</div>';
-            if (title) html += '<div class="notice-title">' + title + '</div>';
-            if (body) html += '<div class="notice-body">' + body;
+        if (!title && !body) continue;
 
-            if (actionText && actionUrl) {
-              html += '<div class="signup-card">' +
-                '<span class="signup-text">' + actionText + '</span>' +
-                '<a class="signup-btn" href="' + actionUrl + '" target="_blank" rel="noopener noreferrer">Open Link ↗</a>' +
-                '</div>';
-            }
+        var noticeDiv = document.createElement('div');
+        noticeDiv.className = 'notice-item';
 
-            if (body) html += '</div>';
+        var html = '';
+        if (tag) html += '<div class="notice-tag">' + tag + '</div>';
+        if (title) html += '<div class="notice-title">' + title + '</div>';
+        if (body) html += '<div class="notice-body">' + body;
 
-            noticeDiv.innerHTML = html;
-            container.appendChild(noticeDiv);
-          }
-        })
-        .catch(function(err) {
-          console.warn('Google Sheet Announcements Tab could not be read.', err);
-        });
-    }
+        if (actionText && actionUrl) {
+          html += '<div class="signup-card">' +
+            '<span class="signup-text">' + actionText + '</span>' +
+            '<a class="signup-btn" href="' + actionUrl + '" target="_blank" rel="noopener noreferrer">Open Link ↗</a>' +
+            '</div>';
+        }
 
-    document.addEventListener('DOMContentLoaded', loadBulletinFromSheets);
+        if (body) html += '</div>';
+
+        noticeDiv.innerHTML = html;
+        container.appendChild(noticeDiv);
+      }
+    };
+
+    // Trigger JSONP requests
+    document.addEventListener('DOMContentLoaded', function() {
+      loadScript('General', 'handleGeneral');
+      loadScript('Program', 'handleProgram');
+      loadScript('Announcements', 'handleAnnouncements');
+    });
   </script>
 </body>
 </html>
