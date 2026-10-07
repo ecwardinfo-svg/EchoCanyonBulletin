@@ -761,7 +761,7 @@
     }
 
     // ==========================================
-    // ROBUST SHEET ENGINE (HEADERS=0 ENABLED)
+    // ROBUST SHEET ENGINE (HEADERS=0 & ANONYMOUS)
     // ==========================================
     var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
 
@@ -795,7 +795,7 @@
     function loadScript(sheetName, callbackName) {
       var script = document.createElement('script');
       var cacheBuster = Date.now();
-      script.crossOrigin = 'anonymous'; // Strips personal Google account cookies on iPad/Mac Safari
+      script.crossOrigin = 'anonymous'; // Strips logged-in Google cookies to fix iPad/Mac Safari
       script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
       script.onerror = function() {
         console.warn('Optional tab not loaded: ' + sheetName);
@@ -872,13 +872,6 @@
         imgEl.src = imgUrl;
         imgEl.style.display = 'block';
         document.getElementById('sacredSvg').style.display = 'none';
-      }
-
-      // Broadcast fallback from General if not in Admin
-      if (data['broadcasturl'] && !document.getElementById('broadcastLink').getAttribute('data-admin-set')) {
-        var bLink = document.getElementById('broadcastLink');
-        bLink.href = data['broadcasturl'];
-        document.getElementById('broadcastContainer').style.display = 'flex';
       }
 
       // Dynamic Special Event Banner
@@ -997,7 +990,7 @@
       });
     };
 
-    // 4. Directory Tab Handler
+    // 4. Directory Tab Handler (With Email, Call & Text Buttons)
     window.handleDirectory = function(response) {
       var rows = extractTable(response);
       if (!rows || rows.length < 1) return;
@@ -1016,6 +1009,7 @@
         var role = rows[i][0] || '';
         var name = rows[i][1] || '';
         var phone = rows[i][2] || '';
+        var email = rows[i][3] ? rows[i][3].trim() : '';
 
         if (!role && !name) continue;
 
@@ -1023,17 +1017,22 @@
         var rowDiv = document.createElement('div');
         rowDiv.className = 'directory-row';
 
-        var actionsHtml = '';
+        var buttons = '';
         if (cleanPhone) {
-          actionsHtml = '<div class="dir-actions">' +
-            '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
+          buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
             '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
-            '</a>' +
-            '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
+            '</a>';
+          buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
             '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
-            '</a>' +
-            '</div>';
+            '</a>';
         }
+        if (email) {
+          buttons += '<a class="action-btn" href="mailto:' + email + '" title="Email ' + name + '" aria-label="Email">' +
+            '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>' +
+            '</a>';
+        }
+
+        var actionsHtml = buttons ? '<div class="dir-actions">' + buttons + '</div>' : '';
 
         rowDiv.innerHTML = '<div>' +
           '<div class="dir-role">' + role + '</div>' +
