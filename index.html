@@ -621,7 +621,7 @@
     <div class="top-bar">
       <div class="ward-pill">
         <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;"></span>
-        Echo Canyon Ward
+        <span id="topWardPillText">Echo Canyon Ward</span>
       </div>
       <button class="theme-toggle-btn" id="themeToggle" title="Toggle Chapel Reverence / Dark Mode">
         <svg id="moonIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -630,8 +630,8 @@
 
     <!-- Main Header Card -->
     <div class="header-card">
-      <h1 class="ward-title">Echo Canyon Ward</h1>
-      <p class="church-sub">The Church of Jesus Christ of Latter-day Saints</p>
+      <h1 class="ward-title" id="wardTitle">Echo Canyon Ward</h1>
+      <p class="church-sub" id="churchSub">The Church of Jesus Christ of Latter-day Saints</p>
       <div class="date-badge" id="bulletinDate">Sunday, October 11, 2026</div>
 
       <!-- Sacred Frame with Image of the Week Support -->
@@ -801,6 +801,46 @@
       };
       document.body.appendChild(script);
     }
+
+    // 0. Admin Tab Handler (Locked Header & Broadcast settings)
+    window.handleAdmin = function(response) {
+      var rows = extractTable(response);
+      var data = {};
+
+      rows.forEach(function(row) {
+        if (row[0]) {
+          var cleanKey = String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
+          data[cleanKey] = row[1] ? String(row[1]).trim() : '';
+        }
+      });
+
+      // Ward Name
+      var wardName = data['wardname'] || data['ward'] || '';
+      if (wardName) {
+        document.getElementById('topWardPillText').textContent = wardName;
+        document.getElementById('wardTitle').textContent = wardName;
+        document.title = wardName + ' • Digital Bulletin';
+      }
+
+      // Church Subtitle
+      var churchName = data['churchname'] || data['church'] || '';
+      if (churchName) {
+        document.getElementById('churchSub').textContent = churchName;
+      }
+
+      // Broadcast Link & Visibility
+      var broadcastUrl = data['broadcasturl'] || '';
+      var isVisible = (data['broadcastvisible'] || 'true').toLowerCase() !== 'false';
+      var container = document.getElementById('broadcastContainer');
+      var bLink = document.getElementById('broadcastLink');
+
+      if (broadcastUrl && isVisible) {
+        bLink.href = broadcastUrl;
+        container.style.display = 'flex';
+      } else if (!isVisible) {
+        container.style.display = 'none';
+      }
+    };
 
     // 1. General Tab Handler
     window.handleGeneral = function(response) {
@@ -1040,6 +1080,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
+      loadScript('Admin', 'handleAdmin');
       loadScript('General', 'handleGeneral');
       loadScript('Program', 'handleProgram');
       loadScript('Schedule', 'handleSchedule');
