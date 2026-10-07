@@ -72,7 +72,7 @@
     }
 
     .section-anchor {
-      scroll-margin-top: 24px;
+      scroll-margin-top: 12px;
     }
 
     /* Top Bar */
@@ -670,7 +670,7 @@
       <p class="primary-desc" id="specialEventDesc"></p>
     </div>
 
-    <!-- Dynamic Sacrament Program Agenda -->
+    <!-- Dynamic Sacrament Program Agenda (Anchored Flush) -->
     <div class="card section-anchor" id="program">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -746,8 +746,7 @@
       if (event) event.preventDefault();
       var el = document.getElementById(targetId);
       if (el) {
-        var yOffset = -20;
-        var y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        var y = el.getBoundingClientRect().top + window.pageYOffset;
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }
@@ -770,7 +769,6 @@
       if (!jsonObj || !jsonObj.table) return [];
       var result = [];
 
-      // If headers were parsed as column labels, include them
       if (jsonObj.table.cols && jsonObj.table.cols.length > 0) {
         var colRow = jsonObj.table.cols.map(function(c) {
           return c && c.label ? String(c.label).trim() : '';
@@ -780,7 +778,6 @@
         }
       }
 
-      // Add all data rows
       if (jsonObj.table.rows) {
         jsonObj.table.rows.forEach(function(row) {
           if (!row || !row.c) return;
@@ -798,7 +795,6 @@
     function loadScript(sheetName, callbackName) {
       var script = document.createElement('script');
       var cacheBuster = Date.now();
-      // headers=0 ensures Row 1 is treated as regular data and not stripped
       script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
       script.onerror = function() {
         console.warn('Optional tab not loaded: ' + sheetName);
@@ -813,7 +809,6 @@
 
       rows.forEach(function(row) {
         if (row[0]) {
-          // Normalize key: strip all spaces, underscores, linebreaks, and non-alphanumeric chars
           var cleanKey = String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
           data[cleanKey] = row[1] ? String(row[1]).trim() : '';
         }
@@ -838,7 +833,7 @@
         document.getElementById('broadcastContainer').style.display = 'flex';
       }
 
-      // Dynamic Special Event Banner (Matches 'Special _Event _Title', 'Special_Event_Title', etc.)
+      // Dynamic Special Event Banner
       var eventCard = document.getElementById('specialEventCard');
       var eventTitle = data['specialeventtitle'] || data['specialevent'] || data['eventtitle'] || '';
       var eventBadge = data['specialeventbadge'] || data['eventbadge'] || 'Special Presentation';
