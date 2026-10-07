@@ -170,20 +170,29 @@
       overflow: hidden;
       background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      min-height: 220px;
+      min-height: 200px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 22px 18px;
+      padding: 20px 16px;
       text-align: center;
     }
 
-    .sacred-svg {
-      width: 72px;
-      height: 72px;
-      color: #93C5FD;
+    .weekly-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
       margin-bottom: 14px;
+      display: none;
+    }
+
+    .sacred-svg {
+      width: 64px;
+      height: 64px;
+      color: #93C5FD;
+      margin-bottom: 12px;
       opacity: 0.95;
     }
 
@@ -191,9 +200,9 @@
       font-family: 'Playfair Display', serif;
       font-style: italic;
       color: #F8FAFC;
-      font-size: 16px;
+      font-size: 15.5px;
       line-height: 1.45;
-      max-width: 310px;
+      max-width: 320px;
     }
 
     .sacred-citation {
@@ -625,9 +634,10 @@
       <p class="church-sub">The Church of Jesus Christ of Latter-day Saints</p>
       <div class="date-badge" id="bulletinDate">Sunday, October 11, 2026</div>
 
-      <!-- Sacred Frame -->
+      <!-- Sacred Frame with Image of the Week Support -->
       <div class="sacred-frame">
-        <svg class="sacred-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+        <img id="weeklyImg" class="weekly-img" alt="Picture of the Week">
+        <svg id="sacredSvg" class="sacred-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
           <path d="M12 3v18"></path>
           <path d="M12 4c-4.5 3-9 2-10 8 3-1 6-1 10-1"></path>
           <path d="M12 4c4.5 3 9 2 10 8-3-1-6-1-10-1"></path>
@@ -681,7 +691,6 @@
         Meeting Block & Lesson Schedule
       </div>
       <div id="scheduleTimeline">
-        <!-- 1st Hour: Sacrament -->
         <div class="time-slot">
           <span class="time-badge">10:30 – 11:30 am</span>
           <div>
@@ -692,7 +701,7 @@
       </div>
     </div>
 
-    <!-- Get in Touch Section (Dynamic from Sheet 'Directory' Tab) -->
+    <!-- Get in Touch Section -->
     <div class="card section-anchor" id="contact">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -753,36 +762,59 @@
     }
 
     // ==========================================
-    // ROBUST SHEET ENGINE (IPAD COMPATIBLE)
+    // ROBUST SHEET ENGINE (HEADERS=0 ENABLED)
     // ==========================================
     var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
 
     function extractTable(jsonObj) {
-      if (!jsonObj || !jsonObj.table || !jsonObj.table.rows) return [];
-      return jsonObj.table.rows.map(function(row) {
-        if (!row || !row.c) return [];
-        return row.c.map(function(cell) {
-          if (!cell || cell.v === null || cell.v === undefined) return '';
-          return String(cell.v).trim();
+      if (!jsonObj || !jsonObj.table) return [];
+      var result = [];
+
+      // If headers were parsed as column labels, include them
+      if (jsonObj.table.cols && jsonObj.table.cols.length > 0) {
+        var colRow = jsonObj.table.cols.map(function(c) {
+          return c && c.label ? String(c.label).trim() : '';
         });
-      });
+        if (colRow.some(function(v) { return v !== ''; })) {
+          result.push(colRow);
+        }
+      }
+
+      // Add all data rows
+      if (jsonObj.table.rows) {
+        jsonObj.table.rows.forEach(function(row) {
+          if (!row || !row.c) return;
+          var r = row.c.map(function(cell) {
+            if (!cell || cell.v === null || cell.v === undefined) return '';
+            return String(cell.v).trim();
+          });
+          result.push(r);
+        });
+      }
+
+      return result;
     }
 
     function loadScript(sheetName, callbackName) {
       var script = document.createElement('script');
       var cacheBuster = Date.now();
-      script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
+      // headers=0 ensures Row 1 is treated as regular data and not stripped
+      script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
+      script.onerror = function() {
+        console.warn('Optional tab not loaded: ' + sheetName);
+      };
       document.body.appendChild(script);
     }
 
-    // 1. General Tab Handler (Ultra-flexible key matching)
+    // 1. General Tab Handler
     window.handleGeneral = function(response) {
       var rows = extractTable(response);
       var data = {};
+
       rows.forEach(function(row) {
         if (row[0]) {
-          var rawKey = String(row[0]).trim();
-          var cleanKey = rawKey.toLowerCase().replace(/[^a-z0-9]/g, '');
+          // Normalize key: strip all spaces, underscores, linebreaks, and non-alphanumeric chars
+          var cleanKey = String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
           data[cleanKey] = row[1] ? String(row[1]).trim() : '';
         }
       });
@@ -791,17 +823,26 @@
       if (data['scripturequote']) document.getElementById('scriptureQuote').textContent = '“' + data['scripturequote'].replace(/^["“]|["”]$/g, '') + '”';
       if (data['scripturecitation']) document.getElementById('scriptureCitation').textContent = data['scripturecitation'];
 
+      // Image of the Week (Row 2 in your sheet)
+      var imgUrl = data['weeklyimageurl'] || data['weeklyimage'] || data['imageurl'] || '';
+      if (imgUrl) {
+        var imgEl = document.getElementById('weeklyImg');
+        imgEl.src = imgUrl;
+        imgEl.style.display = 'block';
+        document.getElementById('sacredSvg').style.display = 'none';
+      }
+
       if (data['broadcasturl']) {
         var bLink = document.getElementById('broadcastLink');
         bLink.href = data['broadcasturl'];
         document.getElementById('broadcastContainer').style.display = 'flex';
       }
 
-      // Dynamic Special Event Banner (Matches 'Special Event Title', 'Special_Event_Title', etc.)
+      // Dynamic Special Event Banner (Matches 'Special _Event _Title', 'Special_Event_Title', etc.)
       var eventCard = document.getElementById('specialEventCard');
       var eventTitle = data['specialeventtitle'] || data['specialevent'] || data['eventtitle'] || '';
       var eventBadge = data['specialeventbadge'] || data['eventbadge'] || 'Special Presentation';
-      var eventDesc = data['specialeventdesc'] || data['specialeventdescription'] || data['eventdesc'] || '';
+      var eventDesc = data['specialeventdescription'] || data['specialeventdesc'] || data['eventdesc'] || '';
 
       if (eventTitle) {
         document.getElementById('specialEventTitle').textContent = eventTitle;
@@ -935,7 +976,7 @@
 
         if (!role && !name) continue;
 
-        var cleanPhone = phone.replace(/\D/g, '');
+        var cleanPhone = phone.replace(/\\D/g, '');
         var rowDiv = document.createElement('div');
         rowDiv.className = 'directory-row';
 
