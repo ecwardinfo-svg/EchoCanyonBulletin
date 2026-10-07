@@ -657,7 +657,7 @@
         </div>
         <div>
           <div class="broadcast-title">Sacrament Broadcast</div>
-          <div class="broadcast-sub">Live meeting broadcast for homebound</div>
+          <div class="broadcast-sub" id="broadcastSub">Live meeting broadcast for homebound</div>
         </div>
       </div>
       <a class="broadcast-btn" id="broadcastLink" href="https://www.churchofjesuschrist.org/media/broadcasts/local-meeting-554312?lang=eng" target="_blank" rel="noopener noreferrer">Watch Broadcast ↗</a>
@@ -795,6 +795,7 @@
     function loadScript(sheetName, callbackName) {
       var script = document.createElement('script');
       var cacheBuster = Date.now();
+      // headers=0 ensures Row 1 is treated as regular data and not stripped
       script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
       script.onerror = function() {
         console.warn('Optional tab not loaded: ' + sheetName);
@@ -840,6 +841,12 @@
       } else if (!isVisible) {
         container.style.display = 'none';
       }
+
+      // Broadcast Subtitle (Text below "Sacrament Broadcast")
+      var broadcastSub = data['broadcastsubtitle'] || data['broadcastsub'] || '';
+      if (broadcastSub) {
+        document.getElementById('broadcastSub').textContent = broadcastSub;
+      }
     };
 
     // 1. General Tab Handler
@@ -858,7 +865,7 @@
       if (data['scripturequote']) document.getElementById('scriptureQuote').textContent = '“' + data['scripturequote'].replace(/^["“]|["”]$/g, '') + '”';
       if (data['scripturecitation']) document.getElementById('scriptureCitation').textContent = data['scripturecitation'];
 
-      // Image of the Week (Row 2 in your sheet)
+      // Image of the Week
       var imgUrl = data['weeklyimageurl'] || data['weeklyimage'] || data['imageurl'] || '';
       if (imgUrl) {
         var imgEl = document.getElementById('weeklyImg');
@@ -867,7 +874,8 @@
         document.getElementById('sacredSvg').style.display = 'none';
       }
 
-      if (data['broadcasturl']) {
+      // Broadcast fallback from General if not in Admin
+      if (data['broadcasturl'] && !document.getElementById('broadcastLink').getAttribute('data-admin-set')) {
         var bLink = document.getElementById('broadcastLink');
         bLink.href = data['broadcasturl'];
         document.getElementById('broadcastContainer').style.display = 'flex';
