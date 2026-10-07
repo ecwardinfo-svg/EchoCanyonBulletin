@@ -795,7 +795,7 @@
     function loadScript(sheetName, callbackName) {
       var script = document.createElement('script');
       var cacheBuster = Date.now();
-      // headers=0 ensures Row 1 is treated as regular data and not stripped
+      script.crossOrigin = 'anonymous'; // Strips personal Google account cookies on iPad/Mac Safari
       script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
       script.onerror = function() {
         console.warn('Optional tab not loaded: ' + sheetName);
