@@ -860,19 +860,44 @@
       document.body.appendChild(script);
     }
 
-    // Determines if upcoming Wednesday is 1st or 3rd Wednesday of its month
-    // Shows on bulletin starting Thursdays right after 2nd, 4th, and 5th Wednesdays
+// Determines if Valiant activities should show:
+    // Becomes visible Sunday morning at 6:00 AM before a 1st or 3rd Wednesday,
+    // and hides Wednesday night at 9:00 PM (21:00).
     function isValiantWeek() {
       var now = new Date();
       var dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+      var hour = now.getHours();
+
+      // Find the upcoming Wednesday of this current week/cycle
       var daysUntilWed = (3 - dayOfWeek + 7) % 7;
-      if (daysUntilWed === 0 && now.getHours() >= 21) {
+
+      // If today is Wednesday after 9:00 PM, or Thu/Fri/Sat, target next Wednesday
+      if (dayOfWeek === 3 && hour >= 21) {
         daysUntilWed = 7;
+      } else if (dayOfWeek > 3) {
+        // Thu, Fri, Sat: this week's Wednesday is over
+        daysUntilWed = (3 - dayOfWeek + 7);
       }
+
       var targetWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilWed);
       var dayOfMonth = targetWed.getDate();
       var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
-      return (wedNumber === 1 || wedNumber === 3);
+      var isActiveWed = (wedNumber === 1 || wedNumber === 3);
+
+      // If the targeted Wednesday is not a 1st or 3rd Wednesday, keep hidden
+      if (!isActiveWed) return false;
+
+      // If it IS an active Wednesday, only show starting Sunday at 6:00 AM
+      // (Days 0, 1, 2, 3 before 9pm are visible)
+      if (dayOfWeek === 0 && hour < 6) {
+        return false; // Sunday before 6am: keep hidden
+      }
+
+      if (dayOfWeek === 3 && hour >= 21) {
+        return false; // Wednesday after 9pm: hide immediately
+      }
+
+      return (dayOfWeek <= 3);
     }
 
     // 0. Admin Tab Handler
