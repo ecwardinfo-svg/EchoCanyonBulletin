@@ -389,17 +389,22 @@
       padding-top: 0;
     }
 
+    /* Compact Stacking Time Badge */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
       color: var(--primary);
       background: var(--primary-light);
-      padding: 5px 10px;
-      border-radius: 6px;
-      white-space: nowrap;
+      padding: 6px 8px;
+      border-radius: 8px;
+      width: 84px;
+      min-width: 84px;
       flex-shrink: 0;
       text-align: center;
-      line-height: 1.4;
+      line-height: 1.35;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .time-badge.accent-badge {
       color: var(--accent);
@@ -411,9 +416,10 @@
     }
 
     .time-name {
-      font-size: 13px;
+      font-size: 13.5px;
       font-weight: 700;
       color: var(--text-main);
+      line-height: 1.35;
     }
     .time-sub {
       font-size: 12px;
@@ -958,7 +964,6 @@
     };
 
     // 3. Schedule Tab Handler
-    // Matches your exact Google Sheet columns:
     // Col A = Day | Col B = Type / Title | Col C = Time | Col D = Subtitle / Notes | Col E = Link Text | Col F = Link URL
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
@@ -984,14 +989,18 @@
 
         if (!dayStr && !titleStr && !timeStr) continue;
 
-        // Routing based on Day in Column A:
+        // Strip any day prefix (e.g. "Wed • ", "Wednesday • ") from the time badge
+        var cleanTime = timeStr.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
+        if (!cleanTime) cleanTime = timeStr || '7:00 – 8:00 pm';
+
+        // Check if row belongs to Sunday
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
-          // Sunday Services Block
-          var sKey = timeStr + '___' + titleStr;
+          // Sunday Services Block: Time on the left, Title on the right
+          var sKey = cleanTime + '___' + titleStr;
           if (!sundayMap[sKey]) {
-            var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
+            var newBlock = { time: cleanTime, title: titleStr, sub: subText, links: [] };
             sundayMap[sKey] = newBlock;
             sundayBlocks.push(newBlock);
           }
@@ -999,18 +1008,9 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Midweek Activity Block
-          // Clean up badge time string so day is not duplicated
-          var cleanBadgeTime = timeStr;
-          if (!cleanBadgeTime) {
-            cleanBadgeTime = 'Wed • 7:00 – 8:00 pm';
-          } else if (!/^(mon|tue|wed|thu|fri|sat|sun)/i.test(cleanBadgeTime)) {
-            var shortDay = dayStr ? dayStr.substring(0, 3) : 'Wed';
-            cleanBadgeTime = shortDay + ' • ' + cleanBadgeTime;
-          }
-
+          // Midweek Activity Block: Clean time (no day) on the left, Title on the right
           customYouthBlocks.push({
-            time: cleanBadgeTime,
+            time: cleanTime,
             title: titleStr,
             sub: subText,
             linkText: linkTxt,
@@ -1036,6 +1036,7 @@
             linksHtml += '</div>';
           }
 
+          // Left: Time badge (stacks cleanly). Right: Title & Subtitle.
           slotDiv.innerHTML = '<span class="time-badge">' + b.time + '</span>' +
             '<div class="time-content">' +
             '<div class="time-name">' + b.title + '</div>' +
@@ -1047,7 +1048,7 @@
         });
       }
 
-      // Render Youth & Midweek Section
+      // Render Youth & Midweek Section (No day in left badge, clean title on right)
       if (youthContainer) {
         youthContainer.innerHTML = '';
 
@@ -1055,6 +1056,8 @@
           customYouthBlocks.forEach(function(yb) {
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
+
+            // Left: Time badge only (e.g., "7:00 – 8:00 pm"). Right: Group title & Notes.
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + yb.time + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
@@ -1064,10 +1067,10 @@
             youthContainer.appendChild(slotDiv);
           });
         } else {
-          // Default Automatic Smart Logic:
+          // Default Automatic Smart Fallbacks (Clean time badges, no day prefix)
           var ywDiv = document.createElement('div');
           ywDiv.className = 'time-slot';
-          ywDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
+          ywDiv.innerHTML = '<span class="time-badge accent-badge">7:00 – 8:00 pm</span>' +
             '<div class="time-content">' +
             '<div class="time-name">Young Women</div>' +
             '<div class="time-sub">Weekly youth activity & class night</div>' +
@@ -1076,7 +1079,7 @@
 
           var ymDiv = document.createElement('div');
           ymDiv.className = 'time-slot';
-          ymDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
+          ymDiv.innerHTML = '<span class="time-badge accent-badge">7:00 – 8:00 pm</span>' +
             '<div class="time-content">' +
             '<div class="time-name">Young Men</div>' +
             '<div class="time-sub">Weekly youth activity & quorum night</div>' +
@@ -1086,7 +1089,7 @@
           if (isValiantWeek()) {
             var vbDiv = document.createElement('div');
             vbDiv.className = 'time-slot';
-            vbDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
+            vbDiv.innerHTML = '<span class="time-badge accent-badge">7:00 – 8:00 pm</span>' +
               '<div class="time-content">' +
               '<div class="time-name">Valiant Boys</div>' +
               '<div class="time-sub">Valiant Boys (Ages 8–11)</div>' +
@@ -1095,7 +1098,7 @@
 
             var vgDiv = document.createElement('div');
             vgDiv.className = 'time-slot';
-            vgDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
+            vgDiv.innerHTML = '<span class="time-badge accent-badge">7:00 – 8:00 pm</span>' +
               '<div class="time-content">' +
               '<div class="time-name">Valiant Girls</div>' +
               '<div class="time-sub">Valiant Girls (Ages 8–11)</div>' +
