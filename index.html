@@ -397,7 +397,7 @@
       padding: 5px 10px;
       border-radius: 6px;
       white-space: nowrap;
-      flex-shrink: 0; /* Prevents badge from collapsing or overlapping titles */
+      flex-shrink: 0;
       text-align: center;
       line-height: 1.4;
     }
@@ -408,7 +408,7 @@
 
     .time-content {
       flex: 1;
-      min-width: 0; /* Ensures title and notes wrap properly beside badge */
+      min-width: 0;
     }
 
     .time-name {
@@ -959,7 +959,7 @@
       }
     };
 
-    // 3. Schedule Tab Handler (Column A = Title / Group, Column B = Time)
+    // 3. Schedule Tab Handler (Column A = Day, Column B = Time, Column C = Title)
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
@@ -970,42 +970,44 @@
       var customYouthBlocks = [];
 
       var startIdx = 0;
-      if (rows[0][0] && (rows[0][0].toLowerCase() === 'title' || rows[0][0].toLowerCase() === 'type' || rows[0][1] && rows[0][1].toLowerCase() === 'time')) {
+      if (rows[0][0] && (rows[0][0].toLowerCase() === 'day' || rows[0][1] && rows[0][1].toLowerCase() === 'time')) {
         startIdx = 1;
       }
 
       for (var i = startIdx; i < rows.length; i++) {
-        var titleOrType = (rows[i][0] || '').trim();
+        var dayStr = (rows[i][0] || '').trim();
         var timeStr = (rows[i][1] || '').trim();
-        var subText = (rows[i][2] || '').trim();
-        var linkTxt = (rows[i][3] || '').trim();
-        var linkUrl = (rows[i][4] || '').trim();
+        var titleStr = (rows[i][2] || '').trim();
+        var subText = (rows[i][3] || '').trim();
+        var linkTxt = (rows[i][4] || '').trim();
+        var linkUrl = (rows[i][5] || '').trim();
 
-        if (!titleOrType && !timeStr) continue;
+        if (!dayStr && !timeStr && !titleStr) continue;
 
-        // Check if row belongs to Midweek / Youth / Valiant activities
-        var isMidweek = /youth|midweek|wednesday|mutual|valiant|young women|young men|\bym\b|\byw\b/i.test(titleOrType) || 
-                        /youth|midweek|wednesday|mutual|valiant|young women|young men|\bym\b|\byw\b/i.test(subText);
+        // Clean day detection:
+        var isSunday = /^sun/i.test(dayStr);
 
-        if (isMidweek) {
-          customYouthBlocks.push({
-            title: titleOrType,
-            time: timeStr || 'Wed • 7:00 – 8:00 pm',
-            sub: subText,
-            linkText: linkTxt,
-            linkUrl: linkUrl
-          });
-        } else {
+        if (isSunday) {
           // Sunday service block
-          var sKey = timeStr + '___' + titleOrType;
+          var sKey = timeStr + '___' + titleStr;
           if (!sundayMap[sKey]) {
-            var newBlock = { time: timeStr, title: titleOrType, sub: subText, links: [] };
+            var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
             sundayMap[sKey] = newBlock;
             sundayBlocks.push(newBlock);
           }
           if (linkTxt && linkUrl) {
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
+        } else {
+          // Midweek / Youth activity block
+          customYouthBlocks.push({
+            day: dayStr || 'Wed',
+            time: timeStr || '7:00 – 8:00 pm',
+            title: titleStr,
+            sub: subText,
+            linkText: linkTxt,
+            linkUrl: linkUrl
+          });
         }
       }
 
@@ -1037,16 +1039,17 @@
         });
       }
 
-      // Render Youth & Midweek Section (Separated: YW, YM, Valiant Boys, Valiant Girls)
+      // Render Youth & Midweek Section
       if (youthContainer) {
         youthContainer.innerHTML = '';
 
         if (customYouthBlocks.length > 0) {
-          // Render custom entries from Google Sheet
           customYouthBlocks.forEach(function(yb) {
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
-            slotDiv.innerHTML = '<span class="time-badge accent-badge">' + yb.time + '</span>' +
+            var displayBadge = (/wed|thu|tue|mon|fri|sat/i.test(yb.time)) ? yb.time : (yb.day + ' • ' + yb.time);
+
+            slotDiv.innerHTML = '<span class="time-badge accent-badge">' + displayBadge + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
               (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
@@ -1056,7 +1059,6 @@
           });
         } else {
           // Default Automatic Smart Logic:
-          // 1. Weekly: Young Women
           var ywDiv = document.createElement('div');
           ywDiv.className = 'time-slot';
           ywDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
@@ -1066,7 +1068,6 @@
             '</div>';
           youthContainer.appendChild(ywDiv);
 
-          // 2. Weekly: Young Men
           var ymDiv = document.createElement('div');
           ymDiv.className = 'time-slot';
           ymDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
@@ -1076,8 +1077,6 @@
             '</div>';
           youthContainer.appendChild(ymDiv);
 
-          // 3 & 4. 1st & 3rd Wednesday: Valiant Boys & Valiant Girls
-          // (Activates starting Thursday right after the 2nd, 4th, and 5th Wednesdays)
           if (isValiantWeek()) {
             var vbDiv = document.createElement('div');
             vbDiv.className = 'time-slot';
