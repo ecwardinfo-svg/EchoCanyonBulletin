@@ -405,7 +405,6 @@
       color: var(--accent);
       background: var(--accent-light);
     }
-
     .time-content {
       flex: 1;
       min-width: 0;
@@ -959,7 +958,7 @@
       }
     };
 
-    // 3. Schedule Tab Handler (Column A = Day, Column B = Time, Column C = Title)
+    // 3. Schedule Tab Handler (Matches Day: Col A, Title: Col B, Time: Col C exactly)
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
@@ -970,21 +969,35 @@
       var customYouthBlocks = [];
 
       var startIdx = 0;
-      if (rows[0][0] && (rows[0][0].toLowerCase() === 'day' || rows[0][1] && rows[0][1].toLowerCase() === 'time')) {
+      if (rows[0][0] && (rows[0][0].toLowerCase() === 'day' || rows[0][1] && rows[0][1].toLowerCase().indexOf('title') !== -1)) {
         startIdx = 1;
       }
 
       for (var i = startIdx; i < rows.length; i++) {
         var dayStr = (rows[i][0] || '').trim();
-        var timeStr = (rows[i][1] || '').trim();
-        var titleStr = (rows[i][2] || '').trim();
+        var colB = (rows[i][1] || '').trim();
+        var colC = (rows[i][2] || '').trim();
         var subText = (rows[i][3] || '').trim();
         var linkTxt = (rows[i][4] || '').trim();
         var linkUrl = (rows[i][5] || '').trim();
 
-        if (!dayStr && !timeStr && !titleStr) continue;
+        if (!dayStr && !colB && !colC) continue;
 
-        // Clean day detection:
+        // Auto-detect which column is Time vs Title (Handles Title in B / Time in C, or vice-versa)
+        var timeStr = '';
+        var titleStr = '';
+        if (/am|pm|:/i.test(colC)) {
+          timeStr = colC;
+          titleStr = colB;
+        } else if (/am|pm|:/i.test(colB)) {
+          timeStr = colB;
+          titleStr = colC;
+        } else {
+          titleStr = colB;
+          timeStr = colC;
+        }
+
+        // Clean day determination:
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
@@ -1047,7 +1060,8 @@
           customYouthBlocks.forEach(function(yb) {
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
-            var displayBadge = (/wed|thu|tue|mon|fri|sat/i.test(yb.time)) ? yb.time : (yb.day + ' • ' + yb.time);
+            // If time already contains day (e.g. "Wed • 7:00 – 8:00 pm"), display as-is; otherwise prepend day
+            var displayBadge = (/wed|thu|tue|mon|fri|sat|sun/i.test(yb.time)) ? yb.time : (yb.day + ' • ' + yb.time);
 
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + displayBadge + '</span>' +
               '<div class="time-content">' +
