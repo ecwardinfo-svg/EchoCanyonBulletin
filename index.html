@@ -394,10 +394,10 @@
       font-weight: 700;
       color: var(--primary);
       background: var(--primary-light);
-      padding: 4px 8px;
+      padding: 5px 10px;
       border-radius: 6px;
       white-space: nowrap;
-      min-width: 105px;
+      flex-shrink: 0;
       text-align: center;
     }
     .time-badge.accent-badge {
@@ -405,10 +405,16 @@
       background: var(--accent-light);
     }
 
+    .time-content {
+      flex: 1;
+      min-width: 0;
+    }
+
     .time-name {
       font-size: 13px;
       font-weight: 700;
       color: var(--text-main);
+      line-height: 1.35;
     }
     .time-sub {
       font-size: 12px;
@@ -698,7 +704,7 @@
       <div id="sundayTimeline">
         <div class="time-slot">
           <span class="time-badge">10:30 – 11:30 am</span>
-          <div>
+          <div class="time-content">
             <div class="time-name">Sacrament Meeting</div>
             <div class="time-sub">Chapel</div>
           </div>
@@ -818,7 +824,7 @@
       document.body.appendChild(script);
     }
 
-    // Calculates if upcoming Wednesday is 1st or 3rd Wednesday of its month
+    // Determines if upcoming Wednesday is 1st or 3rd Wednesday of its month
     // Shows on bulletin starting Thursdays right after 2nd, 4th, and 5th Wednesdays
     function isValiantWeek() {
       var now = new Date();
@@ -952,7 +958,7 @@
       }
     };
 
-    // 3. Schedule Tab Handler (Column A = Type / Title, Column B = Time)
+    // 3. Schedule Tab Handler (Column A = Title / Group, Column B = Time)
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
@@ -976,11 +982,11 @@
 
         if (!titleOrType && !timeStr) continue;
 
-        // Determine if this row belongs to Youth / Midweek activities
-        var isYouth = /youth|midweek|wednesday|mutual|valiant/i.test(titleOrType) || 
-                      /youth|midweek|wednesday|mutual|valiant/i.test(subText);
+        // Check if row belongs to Midweek / Youth / Valiant activities
+        var isMidweek = /youth|midweek|wednesday|mutual|valiant|young women|young men|\bym\b|\byw\b/i.test(titleOrType) || 
+                        /youth|midweek|wednesday|mutual|valiant|young women|young men|\bym\b|\byw\b/i.test(subText);
 
-        if (isYouth) {
+        if (isMidweek) {
           customYouthBlocks.push({
             title: titleOrType,
             time: timeStr || 'Wed • 7:00 – 8:00 pm',
@@ -1020,7 +1026,7 @@
           }
 
           slotDiv.innerHTML = '<span class="time-badge">' + b.time + '</span>' +
-            '<div style="width:100%;">' +
+            '<div class="time-content">' +
             '<div class="time-name">' + b.title + '</div>' +
             (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') +
             linksHtml +
@@ -1030,7 +1036,7 @@
         });
       }
 
-      // Render Youth / Midweek Section
+      // Render Youth & Midweek Section (Separated: YW, YM, Valiant Boys, Valiant Girls)
       if (youthContainer) {
         youthContainer.innerHTML = '';
 
@@ -1039,7 +1045,7 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + yb.time + '</span>' +
-              '<div style="width:100%;">' +
+              '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
               (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
               (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
@@ -1048,26 +1054,46 @@
           });
         } else {
           // Default Automatic Smart Logic:
-          // 1. Every week: Mutual for Young Men & Young Women
-          var mutualDiv = document.createElement('div');
-          mutualDiv.className = 'time-slot';
-          mutualDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
-            '<div style="width:100%;">' +
-            '<div class="time-name">YM & YW Mutual Activity</div>' +
-            '<div class="time-sub">Young Men and Young Women weekly youth night</div>' +
+          // 1. Weekly: Young Women
+          var ywDiv = document.createElement('div');
+          ywDiv.className = 'time-slot';
+          ywDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
+            '<div class="time-content">' +
+            '<div class="time-name">Young Women</div>' +
+            '<div class="time-sub">Weekly youth activity & class night</div>' +
             '</div>';
-          youthContainer.appendChild(mutualDiv);
+          youthContainer.appendChild(ywDiv);
 
-          // 2. 1st & 3rd Wednesday: Valiant Activities (Shows starting Thursday right after 2nd, 4th, 5th Wed)
+          // 2. Weekly: Young Men
+          var ymDiv = document.createElement('div');
+          ymDiv.className = 'time-slot';
+          ymDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
+            '<div class="time-content">' +
+            '<div class="time-name">Young Men</div>' +
+            '<div class="time-sub">Weekly youth activity & quorum night</div>' +
+            '</div>';
+          youthContainer.appendChild(ymDiv);
+
+          // 3 & 4. 1st & 3rd Wednesday: Valiant Boys & Valiant Girls
+          // (Activates starting Thursday right after the 2nd, 4th, and 5th Wednesdays)
           if (isValiantWeek()) {
-            var valiantDiv = document.createElement('div');
-            valiantDiv.className = 'time-slot';
-            valiantDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
-              '<div style="width:100%;">' +
-              '<div class="time-name">Valiant Activities (Ages 8–11)</div>' +
+            var vbDiv = document.createElement('div');
+            vbDiv.className = 'time-slot';
+            vbDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
+              '<div class="time-content">' +
+              '<div class="time-name">Valiant Boys (Ages 8–11)</div>' +
               '<div class="time-sub">1st & 3rd Wednesday Primary activity night</div>' +
               '</div>';
-            youthContainer.appendChild(valiantDiv);
+            youthContainer.appendChild(vbDiv);
+
+            var vgDiv = document.createElement('div');
+            vgDiv.className = 'time-slot';
+            vgDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
+              '<div class="time-content">' +
+              '<div class="time-name">Valiant Girls (Ages 8–11)</div>' +
+              '<div class="time-sub">1st & 3rd Wednesday Primary activity night</div>' +
+              '</div>';
+            youthContainer.appendChild(vgDiv);
           }
         }
       }
