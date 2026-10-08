@@ -397,8 +397,9 @@
       padding: 5px 10px;
       border-radius: 6px;
       white-space: nowrap;
-      flex-shrink: 0;
+      flex-shrink: 0; /* Prevents badge from collapsing or overlapping titles */
       text-align: center;
+      line-height: 1.4;
     }
     .time-badge.accent-badge {
       color: var(--accent);
@@ -407,7 +408,7 @@
 
     .time-content {
       flex: 1;
-      min-width: 0;
+      min-width: 0; /* Ensures title and notes wrap properly beside badge */
     }
 
     .time-name {
@@ -1041,6 +1042,7 @@
         youthContainer.innerHTML = '';
 
         if (customYouthBlocks.length > 0) {
+          // Render custom entries from Google Sheet
           customYouthBlocks.forEach(function(yb) {
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
