@@ -389,35 +389,39 @@
       padding-top: 0;
     }
 
-    /* Structured Two-Line Stacked Badge */
+    /* Structured Non-Breaking Two-Line Time Badge */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
       color: var(--primary);
       background: var(--primary-light);
-      padding: 6px 8px;
+      padding: 6px 4px;
       border-radius: 8px;
-      width: 96px;
-      min-width: 96px;
+      width: 100px;
+      min-width: 100px;
       flex-shrink: 0;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 1px;
+      gap: 2px;
     }
     .time-badge.accent-badge {
       color: var(--accent);
       background: var(--accent-light);
     }
     .time-range {
+      display: block;
       white-space: nowrap;
       font-size: 11px;
       font-weight: 700;
-      line-height: 1.25;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
     }
     .time-meridiem {
+      display: block;
+      white-space: nowrap;
       font-size: 10px;
       font-weight: 700;
       line-height: 1;
@@ -723,7 +727,7 @@
       <div id="sundayTimeline">
         <div class="time-slot">
           <span class="time-badge">
-            <span class="time-range">10:30 – 11:30</span>
+            <span class="time-range">10:30&nbsp;&ndash;&nbsp;11:30</span>
             <span class="time-meridiem">am</span>
           </span>
           <div class="time-content">
@@ -980,15 +984,13 @@
       }
     };
 
-    // Formats raw time string into a clean two-line stacked badge:
-    // Line 1: Numbers (e.g., "10:30 – 11:30" or "7:00 – 8:00")
-    // Line 2: Period ("am" or "pm")
     function formatBadgeTime(rawTime) {
       if (!rawTime) return '';
-      // Strip any day prefix (e.g. "Wed • ", "Wednesday • ")
+      // Strip any day prefix (e.g. "Wed • ")
       var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
-      // Normalize dashes
-      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
+
+      // Normalize any hyphens/dashes to a non-breaking en-dash
+      clean = clean.replace(/\s*[-–—]\s*/g, '&nbsp;&ndash;&nbsp;');
 
       // Extract numbers and am/pm
       var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
@@ -1073,7 +1075,7 @@
             linksHtml += '</div>';
           }
 
-          // Left: Two-line structured time badge. Right: Title & Subtitle.
+          // Left: Structured two-line stacked time badge. Right: Title & Subtitle.
           slotDiv.innerHTML = '<span class="time-badge">' + formatBadgeTime(b.time) + '</span>' +
             '<div class="time-content">' +
             '<div class="time-name">' + b.title + '</div>' +
