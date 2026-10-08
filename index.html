@@ -445,6 +445,14 @@
       margin-top: 2px;
       line-height: 1.4;
     }
+    .time-day-meta {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-top: 3px;
+      letter-spacing: 0.02em;
+    }
 
     .class-grid {
       display: flex;
@@ -986,7 +994,7 @@
 
     function formatBadgeTime(rawTime) {
       if (!rawTime) return '';
-      // Strip any day prefix (e.g. "Wed • ")
+      // Strip any day prefix (e.g. "Wed • ", "Wednesday • ")
       var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
 
       // Normalize any hyphens/dashes to a non-breaking en-dash
@@ -1028,15 +1036,13 @@
 
         if (!dayStr && !titleStr && !timeStr) continue;
 
-        // Clean time: strip day prefix completely
         var cleanTime = timeStr.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
         if (!cleanTime) cleanTime = timeStr || '7:00 – 8:00 pm';
 
-        // Check if row belongs to Sunday
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
-          // Sunday Services Block: Time on the left, Title on the right
+          // Sunday Services Block
           var sKey = cleanTime + '___' + titleStr;
           if (!sundayMap[sKey]) {
             var newBlock = { time: cleanTime, title: titleStr, sub: subText, links: [] };
@@ -1047,8 +1053,9 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Midweek Activity Block: Clean time (no day) on the left, Title on the right
+          // Midweek Activity Block
           customYouthBlocks.push({
+            day: dayStr || 'Wednesday',
             time: cleanTime,
             title: titleStr,
             sub: subText,
@@ -1075,7 +1082,6 @@
             linksHtml += '</div>';
           }
 
-          // Left: Structured two-line stacked time badge. Right: Title & Subtitle.
           slotDiv.innerHTML = '<span class="time-badge">' + formatBadgeTime(b.time) + '</span>' +
             '<div class="time-content">' +
             '<div class="time-name">' + b.title + '</div>' +
@@ -1087,7 +1093,7 @@
         });
       }
 
-      // Render Youth & Midweek Section (No day in left badge, clean title on right)
+      // Render Youth & Midweek Section
       if (youthContainer) {
         youthContainer.innerHTML = '';
 
@@ -1096,23 +1102,27 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
 
-            // Left: Two-line structured time badge (e.g. 7:00 – 8:00 / pm). Right: Group title & Notes.
+            // Displays the day directly from Column A on its own dedicated line underneath
+            var dayLineHtml = yb.day ? '<div class="time-day-meta">' + yb.day + '</div>' : '';
+
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
               (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
+              dayLineHtml +
               (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
               '</div>';
             youthContainer.appendChild(slotDiv);
           });
         } else {
-          // Default Automatic Smart Fallbacks (Clean time badges, no day prefix)
+          // Default Automatic Smart Fallbacks
           var ywDiv = document.createElement('div');
           ywDiv.className = 'time-slot';
           ywDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
             '<div class="time-content">' +
             '<div class="time-name">Young Women</div>' +
             '<div class="time-sub">Weekly youth activity & class night</div>' +
+            '<div class="time-day-meta">Wednesday</div>' +
             '</div>';
           youthContainer.appendChild(ywDiv);
 
@@ -1122,6 +1132,7 @@
             '<div class="time-content">' +
             '<div class="time-name">Young Men</div>' +
             '<div class="time-sub">Weekly youth activity & quorum night</div>' +
+            '<div class="time-day-meta">Wednesday</div>' +
             '</div>';
           youthContainer.appendChild(ymDiv);
 
@@ -1132,6 +1143,7 @@
               '<div class="time-content">' +
               '<div class="time-name">Valiant Boys</div>' +
               '<div class="time-sub">Valiant Boys (Ages 8–11)</div>' +
+              '<div class="time-day-meta">1st & 3rd Wednesday</div>' +
               '</div>';
             youthContainer.appendChild(vbDiv);
 
@@ -1141,6 +1153,7 @@
               '<div class="time-content">' +
               '<div class="time-name">Valiant Girls</div>' +
               '<div class="time-sub">Valiant Girls (Ages 8–11)</div>' +
+              '<div class="time-day-meta">1st & 3rd Wednesday</div>' +
               '</div>';
             youthContainer.appendChild(vgDiv);
           }
