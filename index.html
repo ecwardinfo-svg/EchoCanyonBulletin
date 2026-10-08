@@ -389,7 +389,7 @@
       padding-top: 0;
     }
 
-    /* Structured Non-Breaking Two-Line Time Badge */
+    /* Clean Stacking Time Badge */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
@@ -397,15 +397,15 @@
       background: var(--primary-light);
       padding: 6px 4px;
       border-radius: 8px;
-      width: 100px;
-      min-width: 100px;
+      width: 96px;
+      min-width: 96px;
       flex-shrink: 0;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
+      gap: 1px;
     }
     .time-badge.accent-badge {
       color: var(--accent);
@@ -416,7 +416,7 @@
       white-space: nowrap;
       font-size: 11px;
       font-weight: 700;
-      line-height: 1.2;
+      line-height: 1.25;
       letter-spacing: -0.01em;
     }
     .time-meridiem {
@@ -444,14 +444,6 @@
       color: var(--text-muted);
       margin-top: 2px;
       line-height: 1.4;
-    }
-    .time-day-meta {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--accent);
-      margin-top: 3px;
-      letter-spacing: 0.02em;
     }
 
     .class-grid {
@@ -733,9 +725,10 @@
         Sunday Services & Class Schedule
       </div>
       <div id="sundayTimeline">
+        <!-- Default Sunday Block Fallback -->
         <div class="time-slot">
           <span class="time-badge">
-            <span class="time-range">10:30&nbsp;&ndash;&nbsp;11:30</span>
+            <span class="time-range">10:30 – 11:30</span>
             <span class="time-meridiem">am</span>
           </span>
           <div class="time-content">
@@ -752,7 +745,9 @@
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
         Youth & Primary Midweek Schedule
       </div>
-      <div id="youthTimeline"></div>
+      <div id="youthTimeline">
+        <!-- Loaded dynamically from Google Sheet 'Schedule' or smart calendar engine -->
+      </div>
     </div>
 
     <!-- Get in Touch Section -->
@@ -997,8 +992,8 @@
       // Strip any day prefix (e.g. "Wed • ", "Wednesday • ")
       var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
 
-      // Normalize any hyphens/dashes to a non-breaking en-dash
-      clean = clean.replace(/\s*[-–—]\s*/g, '&nbsp;&ndash;&nbsp;');
+      // Clean dash with regular spaces so browser line wrapping doesn't get confused
+      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
 
       // Extract numbers and am/pm
       var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
@@ -1022,6 +1017,7 @@
       var customYouthBlocks = [];
 
       var startIdx = 0;
+      // Skip Row 1 if it contains headers like "Day", "Type / Title", "Time"
       if (rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][1] && rows[0][1].toLowerCase().indexOf('title') !== -1))) {
         startIdx = 1;
       }
@@ -1035,6 +1031,9 @@
         var linkUrl = (rows[i][5] || '').trim();
 
         if (!dayStr && !titleStr && !timeStr) continue;
+
+        // Skip accidental header repeats
+        if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
 
         var cleanTime = timeStr.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
         if (!cleanTime) cleanTime = timeStr || '7:00 – 8:00 pm';
@@ -1053,9 +1052,8 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Midweek Activity Block
+          // Midweek Activity Block (Time only on the left, Title on the right)
           customYouthBlocks.push({
-            day: dayStr || 'Wednesday',
             time: cleanTime,
             title: titleStr,
             sub: subText,
@@ -1102,14 +1100,11 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
 
-            // Displays the day directly from Column A on its own dedicated line underneath
-            var dayLineHtml = yb.day ? '<div class="time-day-meta">' + yb.day + '</div>' : '';
-
+            // Clean time badge on the left (e.g. 7:00 – 8:00 / pm), group title & notes on the right
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
               (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
-              dayLineHtml +
               (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
               '</div>';
             youthContainer.appendChild(slotDiv);
@@ -1122,7 +1117,6 @@
             '<div class="time-content">' +
             '<div class="time-name">Young Women</div>' +
             '<div class="time-sub">Weekly youth activity & class night</div>' +
-            '<div class="time-day-meta">Wednesday</div>' +
             '</div>';
           youthContainer.appendChild(ywDiv);
 
@@ -1132,7 +1126,6 @@
             '<div class="time-content">' +
             '<div class="time-name">Young Men</div>' +
             '<div class="time-sub">Weekly youth activity & quorum night</div>' +
-            '<div class="time-day-meta">Wednesday</div>' +
             '</div>';
           youthContainer.appendChild(ymDiv);
 
@@ -1143,7 +1136,6 @@
               '<div class="time-content">' +
               '<div class="time-name">Valiant Boys</div>' +
               '<div class="time-sub">Valiant Boys (Ages 8–11)</div>' +
-              '<div class="time-day-meta">1st & 3rd Wednesday</div>' +
               '</div>';
             youthContainer.appendChild(vbDiv);
 
@@ -1153,7 +1145,6 @@
               '<div class="time-content">' +
               '<div class="time-name">Valiant Girls</div>' +
               '<div class="time-sub">Valiant Girls (Ages 8–11)</div>' +
-              '<div class="time-day-meta">1st & 3rd Wednesday</div>' +
               '</div>';
             youthContainer.appendChild(vgDiv);
           }
