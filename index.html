@@ -952,7 +952,7 @@
       }
     };
 
-    // 3. Schedule Tab Handler (Sunday Services + Youth Midweek Schedule)
+    // 3. Schedule Tab Handler (Column A = Type / Title, Column B = Time)
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
@@ -963,53 +963,41 @@
       var customYouthBlocks = [];
 
       var startIdx = 0;
-      if (rows[0][0] && (rows[0][0].toLowerCase() === 'time' || rows[0][0].toLowerCase() === 'type' || rows[0][0].toLowerCase() === 'section')) {
+      if (rows[0][0] && (rows[0][0].toLowerCase() === 'title' || rows[0][0].toLowerCase() === 'type' || rows[0][1] && rows[0][1].toLowerCase() === 'time')) {
         startIdx = 1;
       }
 
       for (var i = startIdx; i < rows.length; i++) {
-        var col0 = (rows[i][0] || '').trim();
-        var col1 = (rows[i][1] || '').trim();
-        var col2 = (rows[i][2] || '').trim();
-        var col3 = (rows[i][3] || '').trim();
-        var col4 = (rows[i][4] || '').trim();
-        var col5 = (rows[i][5] || '').trim();
+        var titleOrType = (rows[i][0] || '').trim();
+        var timeStr = (rows[i][1] || '').trim();
+        var subText = (rows[i][2] || '').trim();
+        var linkTxt = (rows[i][3] || '').trim();
+        var linkUrl = (rows[i][4] || '').trim();
 
-        if (!col0 && !col1 && !col2) continue;
+        if (!titleOrType && !timeStr) continue;
 
-        var isYouth = /youth|midweek|wednesday|mutual|valiant/i.test(col0) || 
-                      /youth|midweek|wednesday|mutual|valiant/i.test(col1) || 
-                      /youth|midweek|mutual|valiant/i.test(col2);
+        // Determine if this row belongs to Youth / Midweek activities
+        var isYouth = /youth|midweek|wednesday|mutual|valiant/i.test(titleOrType) || 
+                      /youth|midweek|wednesday|mutual|valiant/i.test(subText);
 
         if (isYouth) {
-          var yTime = /am|pm|:/i.test(col0) ? col0 : (col1 || '7:00 – 8:00 pm');
-          var yTitle = (/am|pm|:/i.test(col0) ? col1 : col2) || col0;
-          var ySub = /am|pm|:/i.test(col0) ? col2 : col3;
-          var yLinkTxt = /am|pm|:/i.test(col0) ? col3 : col4;
-          var yLinkUrl = /am|pm|:/i.test(col0) ? col4 : col5;
-
           customYouthBlocks.push({
-            time: yTime,
-            title: yTitle,
-            sub: ySub,
-            linkText: yLinkTxt,
-            linkUrl: yLinkUrl
+            title: titleOrType,
+            time: timeStr || 'Wed • 7:00 – 8:00 pm',
+            sub: subText,
+            linkText: linkTxt,
+            linkUrl: linkUrl
           });
         } else {
-          var sTime = col0;
-          var sTitle = col1;
-          var sSub = col2;
-          var sLinkTxt = col3;
-          var sLinkUrl = col4;
-
-          var sKey = sTime + '___' + sTitle;
+          // Sunday service block
+          var sKey = timeStr + '___' + titleOrType;
           if (!sundayMap[sKey]) {
-            var newBlock = { time: sTime, title: sTitle, sub: sSub, links: [] };
+            var newBlock = { time: timeStr, title: titleOrType, sub: subText, links: [] };
             sundayMap[sKey] = newBlock;
             sundayBlocks.push(newBlock);
           }
-          if (sLinkTxt && sLinkUrl) {
-            sundayMap[sKey].links.push({ text: sLinkTxt, url: sLinkUrl });
+          if (linkTxt && linkUrl) {
+            sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         }
       }
@@ -1059,7 +1047,8 @@
             youthContainer.appendChild(slotDiv);
           });
         } else {
-          // Automatic Defaults:
+          // Default Automatic Smart Logic:
+          // 1. Every week: Mutual for Young Men & Young Women
           var mutualDiv = document.createElement('div');
           mutualDiv.className = 'time-slot';
           mutualDiv.innerHTML = '<span class="time-badge accent-badge">Wed • 7:00 – 8:00 pm</span>' +
@@ -1069,6 +1058,7 @@
             '</div>';
           youthContainer.appendChild(mutualDiv);
 
+          // 2. 1st & 3rd Wednesday: Valiant Activities (Shows starting Thursday right after 2nd, 4th, 5th Wed)
           if (isValiantWeek()) {
             var valiantDiv = document.createElement('div');
             valiantDiv.className = 'time-slot';
