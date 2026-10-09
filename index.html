@@ -395,7 +395,7 @@
       padding-top: 0;
     }
 
-    /* Left-side Badge (Time Only) */
+    /* Left-side Badge (Strictly for Time) */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
@@ -438,6 +438,16 @@
     .time-content {
       flex: 1;
       min-width: 0;
+    }
+
+    .time-date-tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 2px;
+      display: block;
     }
 
     .time-name {
@@ -738,7 +748,7 @@
     <div class="card" id="youthCard">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        <span id="youthHeaderLabel">Next Youth Activity</span>
+        <span id="youthHeaderLabel">Next Youth Activity • Wednesday, Oct 14</span>
       </div>
       <div id="youthTimeline"></div>
     </div>
@@ -846,7 +856,7 @@
       document.body.appendChild(script);
     }
 
-    // Cleans times and prevents any day repetition inside the badge
+    // Formats time cleanly for the left badge
     function formatBadgeTime(rawTime) {
       if (!rawTime) return '';
       var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
@@ -865,18 +875,58 @@
       return '<span class="time-range">' + clean + '</span>';
     }
 
-    // Dynamic header: sets "Next Youth Activity • [Day, Mon Date]"
+    // Resolves upcoming date for single days or multi-day ranges (e.g. "Friday & Saturday")
+    function resolveEventDate(dayStr, explicitDateStr) {
+      var now = new Date();
+      var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+      if (explicitDateStr && explicitDateStr.trim()) {
+        return { tag: explicitDateStr.trim() };
+      }
+
+      function getOffset(targetIdx) {
+        var diff = (targetIdx - now.getDay() + 7) % 7;
+        if (diff === 0 && now.getHours() >= 21) diff = 7;
+        else if (diff === 0 && now.getDay() !== targetIdx) diff = 7;
+        return diff;
+      }
+
+      if (/fri/i.test(dayStr) && /sat/i.test(dayStr)) {
+        var friDiff = getOffset(5);
+        var fri = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff);
+        var sat = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff + 1);
+        return {
+          tag: 'Fri & Sat, ' + monthNames[fri.getMonth()] + ' ' + fri.getDate() + '–' + sat.getDate()
+        };
+      }
+
+      var targetIdx = 3;
+      var dayLabel = 'Wednesday';
+      if (/mon/i.test(dayStr)) { targetIdx = 1; dayLabel = 'Monday'; }
+      else if (/tue/i.test(dayStr)) { targetIdx = 2; dayLabel = 'Tuesday'; }
+      else if (/wed/i.test(dayStr)) { targetIdx = 3; dayLabel = 'Wednesday'; }
+      else if (/thu/i.test(dayStr)) { targetIdx = 4; dayLabel = 'Thursday'; }
+      else if (/fri/i.test(dayStr)) { targetIdx = 5; dayLabel = 'Friday'; }
+      else if (/sat/i.test(dayStr)) { targetIdx = 6; dayLabel = 'Saturday'; }
+
+      var offset = getOffset(targetIdx);
+      var computed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
+
+      return {
+        tag: dayLabel + ', ' + monthNames[computed.getMonth()] + ' ' + computed.getDate()
+      };
+    }
+
+    // Dynamic header: updates "Next Youth Activity • [Upcoming Date]"
     function updateNextYouthHeader(targetDayIndex) {
       var now = new Date();
-      var dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+      var dayOfWeek = now.getDay();
       var tIdx = (typeof targetDayIndex === 'number') ? targetDayIndex : 3;
 
       var daysUntil = (tIdx - dayOfWeek + 7) % 7;
-      if (daysUntil === 0 && now.getHours() >= 21) {
-        daysUntil = 7;
-      } else if (daysUntil === 0 && dayOfWeek !== tIdx) {
-        daysUntil = 7;
-      }
+      if (daysUntil === 0 && now.getHours() >= 21) daysUntil = 7;
+      else if (daysUntil === 0 && dayOfWeek !== tIdx) daysUntil = 7;
 
       var nextDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntil);
       var dayOfMonth = nextDate.getDate();
@@ -1033,13 +1083,14 @@
     };
 
     // 3. Schedule Tab Handler
-    // Strictly maps your Sheet:
+    // ACCURATE 7-COLUMN MAPPING MATCHING YOUR GOOGLE SHEET:
     // Col A (0) = Day
-    // Col B (1) = Type / Title
-    // Col C (2) = Time
-    // Col D (3) = Subtitle / Notes
-    // Col E (4) = Link Text
-    // Col F (5) = Link URL
+    // Col B (1) = Date
+    // Col C (2) = Type / Title
+    // Col D (3) = Time
+    // Col E (4) = Subtitle / Location / Notes
+    // Col F (5) = Link_text
+    // Col G (6) = Link_URL
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
@@ -1051,27 +1102,28 @@
       var detectedMidweekDay = null;
 
       var startIdx = 0;
-      if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][1] && rows[0][1].toLowerCase().indexOf('title') !== -1))) {
+      if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][2] && rows[0][2].toLowerCase().indexOf('title') !== -1))) {
         startIdx = 1;
       }
 
       for (var i = startIdx; i < rows.length; i++) {
         var row = rows[i] || [];
         var dayStr = (row[0] || '').trim();
-        var titleStr = (row[1] || '').trim();
-        var timeStr = (row[2] || '').trim();
-        var subText = (row[3] || '').trim();
-        var linkTxt = (row[4] || '').trim();
-        var linkUrl = (row[5] || '').trim();
+        var dateStr = (row[1] || '').trim();
+        var titleStr = (row[2] || '').trim();
+        var timeStr = (row[3] || '').trim();
+        var subText = (row[4] || '').trim();
+        var linkTxt = (row[5] || '').trim();
+        var linkUrl = (row[6] || '').trim();
 
-        // Safely skip empty spacer rows
+        // Safely skip spacer rows
         if (!dayStr && !titleStr && !timeStr) continue;
         if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
 
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
-          // Sunday Services Card: Left Box = Time, Right Box = Title
+          // Sunday Services: Left Badge gets Time (Col D), Right Area gets Title (Col C)
           var sKey = timeStr + '___' + titleStr;
           if (!sundayMap[sKey]) {
             var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
@@ -1082,24 +1134,36 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Detect midweek day for the header
+          // Detect midweek day
           if (/tue/i.test(dayStr)) detectedMidweekDay = 2;
           else if (/wed/i.test(dayStr) && detectedMidweekDay === null) detectedMidweekDay = 3;
           else if (/thu/i.test(dayStr)) detectedMidweekDay = 4;
 
-          // Midweek Activity Row
+          // Midweek Activity Row: check if Valiant
           var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
           var isValiant = combined.indexOf('valiant') !== -1 || combined.indexOf('primary') !== -1;
 
-          // If Valiant and NOT an active week/window: skip it!
+          // If Valiant and NOT active week/window: skip immediately!
           if (isValiant && !isValiantWeek()) {
             continue;
+          }
+
+          var dateInfo = resolveEventDate(dayStr, dateStr);
+
+          // Subtitle formatting: displays clean day prefix or custom notes
+          var cleanDay = dayStr;
+          if (/^wed/i.test(cleanDay)) cleanDay = 'Wed';
+          else if (/fri/i.test(cleanDay) && /sat/i.test(cleanDay)) cleanDay = 'Fri & Sat';
+
+          var fullSub = subText;
+          if (dateStr && !subText) {
+            fullSub = dateStr;
           }
 
           customYouthBlocks.push({
             time: timeStr || '7:00 – 8:00 pm',
             title: titleStr,
-            sub: subText,
+            sub: fullSub,
             linkText: linkTxt,
             linkUrl: linkUrl
           });
