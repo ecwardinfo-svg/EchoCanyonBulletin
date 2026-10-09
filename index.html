@@ -1024,18 +1024,20 @@
       var customYouthBlocks = [];
 
       var startIdx = 0;
-      if (rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][1] && rows[0][1].toLowerCase().indexOf('title') !== -1))) {
+      if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][1] && rows[0][1].toLowerCase().indexOf('title') !== -1))) {
         startIdx = 1;
       }
 
       for (var i = startIdx; i < rows.length; i++) {
-        var dayStr = (rows[i][0] || '').trim();
-        var titleStr = (rows[i][1] || '').trim();
-        var timeStr = (rows[i][2] || '').trim();
-        var subText = (rows[i][3] || '').trim();
-        var linkTxt = (rows[i][4] || '').trim();
-        var linkUrl = (rows[i][5] || '').trim();
+        var row = rows[i] || [];
+        var dayStr = (row[0] || '').trim();
+        var titleStr = (row[1] || '').trim();
+        var timeStr = (row[2] || '').trim();
+        var subText = (row[3] || '').trim();
+        var linkTxt = (row[4] || '').trim();
+        var linkUrl = (row[5] || '').trim();
 
+        // Safely skip empty spacer rows so organization in Google Sheets stays clean
         if (!dayStr && !titleStr && !timeStr) continue;
         if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
 
@@ -1055,10 +1057,13 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Check if this row is a Valiant activity and if it should be hidden
-          var isValiantRow = /valiant/i.test(titleStr) || /valiant/i.test(subText);
+          // Midweek Activity Row: check if it's a Valiant / Primary group
+          var combinedText = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
+          var isValiantRow = combinedText.indexOf('valiant') !== -1 || combinedText.indexOf('primary') !== -1;
+
+          // If it's a Valiant row and this week is an off-week (or past Wed 9pm), skip it!
           if (isValiantRow && !isValiantWeek()) {
-            continue; // Skip during off-weeks or outside Sunday 6am - Wed 9pm
+            continue;
           }
 
           customYouthBlocks.push({
@@ -1071,7 +1076,7 @@
         }
       }
 
-      // Render Sunday Services
+      // Render Sunday Services Card
       if (sundayBlocks.length > 0 && sundayContainer) {
         sundayContainer.innerHTML = '';
         sundayBlocks.forEach(function(b) {
@@ -1099,7 +1104,7 @@
         });
       }
 
-      // Render Youth & Midweek Section
+      // Render Youth & Midweek Activities Card
       if (youthContainer) {
         youthContainer.innerHTML = '';
 
@@ -1117,7 +1122,7 @@
             youthContainer.appendChild(slotDiv);
           });
         } else {
-          // Automatic Fallbacks
+          // Fallback if no custom midweek activities are active this week
           var ywDiv = document.createElement('div');
           ywDiv.className = 'time-slot';
           ywDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
@@ -1135,26 +1140,6 @@
             '<div class="time-sub">Weekly youth activity & quorum night</div>' +
             '</div>';
           youthContainer.appendChild(ymDiv);
-
-          if (isValiantWeek()) {
-            var vbDiv = document.createElement('div');
-            vbDiv.className = 'time-slot';
-            vbDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
-              '<div class="time-content">' +
-              '<div class="time-name">Valiant Boys</div>' +
-              '<div class="time-sub">Valiant Boys (Ages 8–11)</div>' +
-              '</div>';
-            youthContainer.appendChild(vbDiv);
-
-            var vgDiv = document.createElement('div');
-            vgDiv.className = 'time-slot';
-            vgDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
-              '<div class="time-content">' +
-              '<div class="time-name">Valiant Girls</div>' +
-              '<div class="time-sub">Valiant Girls (Ages 8–11)</div>' +
-              '</div>';
-            youthContainer.appendChild(vgDiv);
-          }
         }
       }
     };
@@ -1189,7 +1174,7 @@
         var buttons = '';
         if (cleanPhone) {
           buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
-            '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
+            '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
             '</a>';
           buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
             '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
