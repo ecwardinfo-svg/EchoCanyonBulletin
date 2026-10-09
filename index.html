@@ -838,7 +838,6 @@
           if (!row || !row.c) return;
           var r = row.c.map(function(cell) {
             if (!cell || cell.v === null || cell.v === undefined) return '';
-            // If Google Sheets sends formatted text (e.g. October 9-10), use it directly
             if (cell.f) return String(cell.f).trim();
             return String(cell.v).trim();
           });
@@ -879,46 +878,66 @@
       return '<span class="time-range">' + clean + '</span>';
     }
 
-    // Smart Date Resolver: accurately handles ranges ("October 9-10"), Google Date objects, and fallbacks
+    // Universal Date Resolver: handles "10/9/2026 - 10/10/2026", "October 9-10", "Date(...)", and single dates
     function resolveEventDate(dayStr, dateStr) {
       var now = new Date();
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-      // 1. Direct multi-day text detection (e.g. "October 9-10", "Oct 9-10", "October 9–10")
       if (dateStr && dateStr.trim()) {
-        var trimmed = dateStr.trim();
+        var s = dateStr.trim();
 
-        // Check if there's a range like "October 9-10" or "9-10"
-        var rangeMatch = trimmed.match(/^([a-z]+)\s*(\d{1,2})\s*[-–—]\s*(\d{1,2})/i);
-        if (rangeMatch) {
-          var mIdxRange = monthNames.findIndex(function(mn) {
-            return mn.toLowerCase() === rangeMatch[1].substring(0, 3).toLowerCase();
-          });
-          var mMonth = mIdxRange !== -1 ? mIdxRange : now.getMonth();
-          var rDate = new Date(now.getFullYear(), mMonth, parseInt(rangeMatch[2], 10), 12, 0, 0);
-          return {
-            timestamp: rDate.getTime(),
-            displayDate: rangeMatch[1] + ' ' + rangeMatch[2] + '–' + rangeMatch[3]
-          };
-        }
-
-        // Check if Google Sheets converted "9-10" into Date(2010, 9, 9)
-        var gMatch = trimmed.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)/i);
-        if (gMatch) {
-          var y = parseInt(gMatch[1], 10);
-          var m = parseInt(gMatch[2], 10); // 0-indexed month from Google
-          var d = parseInt(gMatch[3], 10);
-
-          // If day is 9 and Google thought the year was 2010 (meaning the user entered 9-10)
-          if ((y === 2010 && d === 9) || /&|-/.test(dayStr)) {
-            var fullMonthName = monthNames[m] === 'Oct' ? 'October' : monthNames[m];
+        // 1. Numeric slash ranges: "10/9/2026 - 10/10/2026" or "10/9 - 10/10"
+        var slashRange = s.match(/(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?\s*[-–—\n]\s*(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?/);
+        if (slashRange) {
+          var m1 = parseInt(slashRange[1], 10);
+          var d1 = parseInt(slashRange[2], 10);
+          var m2 = parseInt(slashRange[3], 10);
+          var d2 = parseInt(slashRange[4], 10);
+          var ts = new Date(now.getFullYear(), m1 - 1, d1, 12, 0, 0).getTime();
+          if (m1 === m2) {
             return {
-              timestamp: new Date(now.getFullYear(), m, d, 12, 0, 0).getTime(),
-              displayDate: fullMonthName + ' ' + d + '–' + (d + 1)
+              timestamp: ts,
+              displayDate: monthNames[m1 - 1] + ' ' + d1 + '–' + d2
+            };
+          } else {
+            return {
+              timestamp: ts,
+              displayDate: monthNames[m1 - 1] + ' ' + d1 + ' – ' + monthNames[m2 - 1] + ' ' + d2
             };
           }
+        }
 
+        // 2. Month text ranges: "October 9-10" or "Oct 9 - Oct 10"
+        var textRange = s.match(/([a-z]+)\s*(\d{1,2})\s*[-–—\n]\s*(?:([a-z]+)\s*)?(\d{1,2})/i);
+        if (textRange) {
+          var mo1Str = textRange[1].substring(0, 3).toLowerCase();
+          var mIdx1 = monthNames.findIndex(function(mn) { return mn.toLowerCase() === mo1Str; });
+          if (mIdx1 !== -1) {
+            var dStart = parseInt(textRange[2], 10);
+            var dEnd = parseInt(textRange[4], 10);
+            var tsText = new Date(now.getFullYear(), mIdx1, dStart, 12, 0, 0).getTime();
+            if (textRange[3]) {
+              var mo2Str = textRange[3].substring(0, 3).toLowerCase();
+              var mIdx2 = monthNames.findIndex(function(mn) { return mn.toLowerCase() === mo2Str; });
+              return {
+                timestamp: tsText,
+                displayDate: monthNames[mIdx1] + ' ' + dStart + ' – ' + (mIdx2 !== -1 ? monthNames[mIdx2] : textRange[3]) + ' ' + dEnd
+              };
+            }
+            return {
+              timestamp: tsText,
+              displayDate: monthNames[mIdx1] + ' ' + dStart + '–' + dEnd
+            };
+          }
+        }
+
+        // 3. Google Sheets raw Date(YYYY, M, D)
+        var gMatch = s.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)/i);
+        if (gMatch) {
+          var y = parseInt(gMatch[1], 10);
+          var m = parseInt(gMatch[2], 10);
+          var d = parseInt(gMatch[3], 10);
           var gDate = new Date(y, m, d, 12, 0, 0);
           var gDayName = dayNames[gDate.getDay()];
           return {
@@ -927,41 +946,45 @@
           };
         }
 
-        // Single named date: "October 10" or "Oct 10" -> "Saturday, Oct 10"
-        var singleMatch = trimmed.match(/^([a-z]+)\s*(\d{1,2})$/i);
-        if (singleMatch) {
-          var mIdx = monthNames.findIndex(function(mn) {
-            return mn.toLowerCase() === singleMatch[1].substring(0, 3).toLowerCase();
-          });
-          if (mIdx !== -1) {
-            var constructed = new Date(now.getFullYear(), mIdx, parseInt(singleMatch[2], 10), 12, 0, 0);
-            var dayLabel = dayNames[constructed.getDay()];
+        // 4. Single text date: "October 10" or "Oct 10"
+        var singleText = s.match(/^([a-z]+)\s*(\d{1,2})$/i);
+        if (singleText) {
+          var sMoStr = singleText[1].substring(0, 3).toLowerCase();
+          var sMIdx = monthNames.findIndex(function(mn) { return mn.toLowerCase() === sMoStr; });
+          if (sMIdx !== -1) {
+            var dNum = parseInt(singleText[2], 10);
+            var singleDt = new Date(now.getFullYear(), sMIdx, dNum, 12, 0, 0);
+            var sDayLabel = dayNames[singleDt.getDay()];
             return {
-              timestamp: constructed.getTime(),
-              displayDate: dayLabel + ', ' + monthNames[mIdx] + ' ' + singleMatch[2]
+              timestamp: singleDt.getTime(),
+              displayDate: sDayLabel + ', ' + monthNames[sMIdx] + ' ' + dNum
             };
           }
         }
 
-        // Standard string fallback
-        var parsed = Date.parse(trimmed);
-        if (!isNaN(parsed)) {
-          var pDate = new Date(parsed);
-          if (pDate.getFullYear() < 2020) pDate.setFullYear(now.getFullYear());
+        // 5. Single numeric date: "10/10/2026" or "10/10"
+        var singleSlash = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+        if (singleSlash) {
+          var sm = parseInt(singleSlash[1], 10);
+          var sd = parseInt(singleSlash[2], 10);
+          var sy = singleSlash[3] ? parseInt(singleSlash[3], 10) : now.getFullYear();
+          if (sy < 100) sy += 2000;
+          var sDateObj = new Date(sy, sm - 1, sd, 12, 0, 0);
+          var sDayName = dayNames[sDateObj.getDay()];
           return {
-            timestamp: pDate.getTime(),
-            displayDate: dayNames[pDate.getDay()] + ', ' + monthNames[pDate.getMonth()] + ' ' + pDate.getDate()
+            timestamp: sDateObj.getTime(),
+            displayDate: sDayName + ', ' + monthNames[sm - 1] + ' ' + sd
           };
         }
 
         return {
           timestamp: now.getTime() + 86400000,
-          displayDate: trimmed
+          displayDate: s
         };
       }
 
       // Default: If date column was blank, assume upcoming day from Column A (or Wednesday)
-      var targetIdx = 3; // Wednesday
+      var targetIdx = 3;
       if (/mon/i.test(dayStr)) targetIdx = 1;
       else if (/tue/i.test(dayStr)) targetIdx = 2;
       else if (/wed/i.test(dayStr)) targetIdx = 3;
@@ -1170,188 +1193,4 @@
           }
         } else {
           // Check specifically if this row is for Valiant
-          var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
-          var isValiant = combined.indexOf('valiant') !== -1;
-
-          // If Valiant and NOT active week/window: skip immediately!
-          if (isValiant && !isValiantWeek()) {
-            continue;
-          }
-
-          var dateInfo = resolveEventDate(dayStr, dateStr);
-
-          customYouthBlocks.push({
-            timestamp: dateInfo.timestamp,
-            dateDisplay: dateInfo.displayDate,
-            time: timeStr || '7:00 – 8:00 pm',
-            title: titleStr,
-            sub: subText,
-            linkText: linkTxt,
-            linkUrl: linkUrl
-          });
-        }
-      }
-
-      // Sort youth & ward activities in chronological order based on date
-      customYouthBlocks.sort(function(a, b) {
-        return a.timestamp - b.timestamp;
-      });
-
-      // Render Sunday Services
-      if (sundayBlocks.length > 0 && sundayContainer) {
-        sundayContainer.innerHTML = '';
-        sundayBlocks.forEach(function(b) {
-          var slotDiv = document.createElement('div');
-          slotDiv.className = 'time-slot';
-
-          var linksHtml = '';
-          if (b.links.length > 0) {
-            linksHtml = '<div class="class-grid">';
-            b.links.forEach(function(l) {
-              linksHtml += '<a class="lesson-link-btn" href="' + l.url + '" target="_blank" rel="noopener noreferrer">' +
-                '<span>' + l.text + '</span><span>↗</span></a>';
-            });
-            linksHtml += '</div>';
-          }
-
-          slotDiv.innerHTML = '<span class="time-badge">' + formatBadgeTime(b.time) + '</span>' +
-            '<div class="time-content">' +
-            '<div class="time-name">' + b.title + '</div>' +
-            (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') +
-            linksHtml +
-            '</div>';
-
-          sundayContainer.appendChild(slotDiv);
-        });
-      }
-
-      // Render Midweek & Ward Activities Section
-      if (youthContainer) {
-        youthContainer.innerHTML = '';
-
-        if (customYouthBlocks.length > 0) {
-          customYouthBlocks.forEach(function(yb) {
-            var slotDiv = document.createElement('div');
-            slotDiv.className = 'time-slot';
-
-            // Clean Time on Left; Bold Title, Date line, Notes line on Right
-            slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
-              '<div class="time-content">' +
-              '<div class="time-name">' + yb.title + '</div>' +
-              (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') +
-              (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
-              (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
-              '</div>';
-            youthContainer.appendChild(slotDiv);
-          });
-        }
-      }
-    };
-
-    // 4. Directory Tab Handler
-    window.handleDirectory = function(response) {
-      var rows = extractTable(response);
-      if (!rows || rows.length < 1) return;
-      var container = document.getElementById('directoryList');
-
-      var startIdx = 0;
-      if (rows[0][0] && (rows[0][0].toLowerCase() === 'role' || rows[0][0].toLowerCase() === 'position')) {
-        startIdx = 1;
-      }
-
-      if (rows.length > startIdx) {
-        container.innerHTML = '';
-      }
-
-      for (var i = startIdx; i < rows.length; i++) {
-        var role = rows[i][0] || '';
-        var name = rows[i][1] || '';
-        var phone = rows[i][2] || '';
-        var email = rows[i][3] ? rows[i][3].trim() : '';
-
-        if (!role && !name) continue;
-
-        var cleanPhone = phone.replace(/\D/g, '');
-        var rowDiv = document.createElement('div');
-        rowDiv.className = 'directory-row';
-
-        var buttons = '';
-        if (cleanPhone) {
-          buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
-            '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
-            '</a>';
-          buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
-            '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
-            '</a>';
-        }
-        if (email) {
-          buttons += '<a class="action-btn" href="mailto:' + email + '" title="Email ' + name + '" aria-label="Email">' +
-            '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>' +
-            '</a>';
-        }
-
-        var actionsHtml = buttons ? '<div class="dir-actions">' + buttons + '</div>' : '';
-
-        rowDiv.innerHTML = '<div>' +
-          '<div class="dir-role">' + role + '</div>' +
-          '<div class="dir-name">' + name + '</div>' +
-          '</div>' + actionsHtml;
-
-        container.appendChild(rowDiv);
-      }
-    };
-
-    // 5. Announcements Tab Handler
-    window.handleAnnouncements = function(response) {
-      var rows = extractTable(response);
-      if (!rows || rows.length < 1) return;
-      var container = document.getElementById('announcementsList');
-      container.innerHTML = '';
-
-      var startIdx = 0;
-      if (rows[0][1] && (rows[0][1].toLowerCase() === 'title' || rows[0][0].toLowerCase() === 'tag')) {
-        startIdx = 1;
-      }
-
-      for (var i = startIdx; i < rows.length; i++) {
-        var tag = rows[i][0] || '';
-        var title = rows[i][1] || '';
-        var body = rows[i][2] || '';
-        var actionText = rows[i][3] || '';
-        var actionUrl = rows[i][4] || '';
-
-        if (!title && !body) continue;
-
-        var noticeDiv = document.createElement('div');
-        noticeDiv.className = 'notice-item';
-
-        var html = '';
-        if (tag) html += '<div class="notice-tag">' + tag + '</div>';
-        if (title) html += '<div class="notice-title">' + title + '</div>';
-        if (body) html += '<div class="notice-body">' + body;
-
-        if (actionText && actionUrl) {
-          html += '<div class="signup-card">' +
-            '<span class="signup-text">' + actionText + '</span>' +
-            '<a class="signup-btn" href="' + actionUrl + '" target="_blank" rel="noopener noreferrer">Open Link ↗</a>' +
-            '</div>';
-        }
-
-        if (body) html += '</div>';
-
-        noticeDiv.innerHTML = html;
-        container.appendChild(noticeDiv);
-      }
-    };
-
-    document.addEventListener('DOMContentLoaded', function() {
-      loadScript('Admin', 'handleAdmin');
-      loadScript('General', 'handleGeneral');
-      loadScript('Program', 'handleProgram');
-      loadScript('Schedule', 'handleSchedule');
-      loadScript('Directory', 'handleDirectory');
-      loadScript('Announcements', 'handleAnnouncements');
-    });
-  </script>
-</body>
-</html>
+          var combined = (dayStr + ' ' + titleStr
