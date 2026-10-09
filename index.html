@@ -326,7 +326,6 @@
       font-size: 13px;
       font-weight: 800;
       letter-spacing: 0.06em;
-      text-transform: uppercase;
       color: var(--text-muted);
       margin-bottom: 14px;
       display: flex;
@@ -857,27 +856,29 @@
       document.body.appendChild(script);
     }
 
-    // Dynamic Title: "Next Youth & Valiant Activity" on 1st/3rd Wed,
-    // otherwise "Next Youth Activity" on off-weeks.
-    function updateNextYouthHeader() {
+    // Smart Header: Inspects rows to check if an activity is scheduled for Tuesday, Wednesday, or Thursday
+    function updateNextYouthHeader(customDayDetected) {
       var now = new Date();
       var dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
-      var daysUntilWed = (3 - dayOfWeek + 7) % 7;
 
-      // If today is Wednesday past 9:00 PM, advance to the following Wednesday
-      if (dayOfWeek === 3 && now.getHours() >= 21) {
-        daysUntilWed = 7;
-      } else if (daysUntilWed === 0 && dayOfWeek !== 3) {
-        daysUntilWed = 7;
+      // Target day: Default to Wednesday (3), unless detected otherwise (e.g. Tuesday = 2)
+      var targetDayIndex = (typeof customDayDetected === 'number') ? customDayDetected : 3;
+
+      var daysUntil = (targetDayIndex - dayOfWeek + 7) % 7;
+      if (daysUntil === 0 && now.getHours() >= 21) {
+        daysUntil = 7;
+      } else if (daysUntil === 0 && dayOfWeek !== targetDayIndex) {
+        daysUntil = 7;
       }
 
-      var nextWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilWed);
-      var dayOfMonth = nextWed.getDate();
+      var nextDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntil);
+      var dayOfMonth = nextDate.getDate();
       var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
-      var hasValiant = (wedNumber === 1 || wedNumber === 3);
+      var hasValiant = (targetDayIndex === 3 && (wedNumber === 1 || wedNumber === 3));
 
+      var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      var formattedDate = 'Wednesday, ' + monthNames[nextWed.getMonth()] + ' ' + dayOfMonth;
+      var formattedDate = dayNames[nextDate.getDay()] + ', ' + monthNames[nextDate.getMonth()] + ' ' + dayOfMonth;
 
       var titlePrefix = hasValiant ? 'Next Youth & Valiant Activity' : 'Next Youth Activity';
 
@@ -1043,17 +1044,15 @@
     }
 
     // 3. Schedule Tab Handler
-    // Col A = Day | Col B = Type / Title | Col C = Time | Col D = Subtitle / Notes | Col E = Link Text | Col F = Link URL
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
       var youthContainer = document.getElementById('youthTimeline');
 
-      updateNextYouthHeader();
-
       var sundayBlocks = [];
       var sundayMap = {};
       var customYouthBlocks = [];
+      var detectedMidweekDay = null; // Detects 2=Tue, 3=Wed, 4=Thu
 
       var startIdx = 0;
       if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][1] && rows[0][1].toLowerCase().indexOf('title') !== -1))) {
@@ -1089,11 +1088,14 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Midweek Activity Row: check if it's a Valiant / Primary group
+          // Midweek Activity Row: check for custom day
+          if (/tue/i.test(dayStr)) detectedMidweekDay = 2;
+          else if (/wed/i.test(dayStr) && detectedMidweekDay === null) detectedMidweekDay = 3;
+          else if (/thu/i.test(dayStr)) detectedMidweekDay = 4;
+
           var combinedText = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
           var isValiantRow = combinedText.indexOf('valiant') !== -1 || combinedText.indexOf('primary') !== -1;
 
-          // If it's a Valiant row and this week is an off-week (or past Wed 9pm), skip it!
           if (isValiantRow && !isValiantWeek()) {
             continue;
           }
@@ -1107,6 +1109,9 @@
           });
         }
       }
+
+      // Update Header with detected weekday
+      updateNextYouthHeader(detectedMidweekDay !== null ? detectedMidweekDay : 3);
 
       // Render Sunday Services Card
       if (sundayBlocks.length > 0 && sundayContainer) {
@@ -1154,7 +1159,6 @@
             youthContainer.appendChild(slotDiv);
           });
         } else {
-          // Fallback if no custom midweek activities are active this week
           var ywDiv = document.createElement('div');
           ywDiv.className = 'time-slot';
           ywDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
@@ -1273,7 +1277,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
-      updateNextYouthHeader();
+      updateNextYouthHeader(3);
       loadScript('Admin', 'handleAdmin');
       loadScript('General', 'handleGeneral');
       loadScript('Program', 'handleProgram');
