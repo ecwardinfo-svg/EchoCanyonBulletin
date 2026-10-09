@@ -807,8 +807,7 @@
       if (event) event.preventDefault();
       var el = document.getElementById(targetId);
       if (el) {
-        var yOffset = 0;
-        var y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        var y = el.getBoundingClientRect().top + window.pageYOffset;
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }
@@ -865,50 +864,74 @@
       document.body.appendChild(script);
     }
 
-    // Calculates date tag for single days OR multi-day ranges (e.g., "Friday & Saturday")
-    function getNextDateForDay(dayName) {
+    // Resolves both visual label and a numeric timestamp for accurate chronological sorting
+    function resolveEventDate(dayStr, customDateStr) {
       var now = new Date();
-      var dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-      function getOffsetForDayIdx(targetIdx) {
-        var diff = (targetIdx - dayOfWeek + 7) % 7;
-        if (diff === 0 && now.getHours() >= 21) {
-          diff = 7;
-        } else if (diff === 0 && dayOfWeek !== targetIdx) {
-          diff = 7;
+      // 1. If explicit Date is provided in Sheet (e.g. "Oct 16", "10/16", "October 16, 2026")
+      if (customDateStr && customDateStr.trim()) {
+        var trimmed = customDateStr.trim();
+        var parsed = Date.parse(trimmed);
+        if (!isNaN(parsed)) {
+          var d = new Date(parsed);
+          // Default year if missing
+          if (d.getFullYear() < 2020) d.setFullYear(now.getFullYear());
+          return {
+            timestamp: d.getTime(),
+            tag: dayNames[d.getDay()] + ', ' + monthNames[d.getMonth()] + ' ' + d.getDate()
+          };
         }
+        // Handle shorthand e.g., "Oct 16"
+        var parts = trimmed.match(/^([a-z]+)\s*(\d{1,2})/i);
+        if (parts) {
+          var mIdx = monthNames.findIndex(function(m) { return m.toLowerCase() === parts[1].substring(0, 3).toLowerCase(); });
+          if (mIdx !== -1) {
+            var constructed = new Date(now.getFullYear(), mIdx, parseInt(parts[2], 10));
+            return {
+              timestamp: constructed.getTime(),
+              tag: dayNames[constructed.getDay()] + ', ' + monthNames[constructed.getMonth()] + ' ' + constructed.getDate()
+            };
+          }
+        }
+      }
+
+      // 2. Multi-Day Event handling (e.g., "Friday & Saturday")
+      function getOffset(targetIdx) {
+        var diff = (targetIdx - now.getDay() + 7) % 7;
+        if (diff === 0 && now.getHours() >= 21) diff = 7;
+        else if (diff === 0 && now.getDay() !== targetIdx) diff = 7;
         return diff;
       }
 
-      // Check for multi-day ranges: e.g. "Friday & Saturday", "Fri - Sat"
-      if (/fri/i.test(dayName) && /sat/i.test(dayName)) {
-        var friDiff = getOffsetForDayIdx(5);
-        var friDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff);
-        var satDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff + 1);
-
-        if (friDate.getMonth() === satDate.getMonth()) {
-          return 'Fri & Sat, ' + monthNames[friDate.getMonth()] + ' ' + friDate.getDate() + '–' + satDate.getDate();
-        } else {
-          return 'Fri, ' + monthNames[friDate.getMonth()] + ' ' + friDate.getDate() + ' – Sat, ' + monthNames[satDate.getMonth()] + ' ' + satDate.getDate();
-        }
+      if (/fri/i.test(dayStr) && /sat/i.test(dayStr)) {
+        var friDiff = getOffset(5);
+        var fri = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff);
+        var sat = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff + 1);
+        return {
+          timestamp: fri.getTime(),
+          tag: 'Fri & Sat, ' + monthNames[fri.getMonth()] + ' ' + fri.getDate() + '–' + sat.getDate()
+        };
       }
 
-      // Single Day handling
-      var targetIndex = 3; // Default Wednesday
-      var labelDay = 'Wednesday';
+      // 3. Single Day Weekday handling
+      var targetIdx = 3; // Wednesday
+      var dayLabel = 'Wednesday';
+      if (/mon/i.test(dayStr)) { targetIdx = 1; dayLabel = 'Monday'; }
+      else if (/tue/i.test(dayStr)) { targetIdx = 2; dayLabel = 'Tuesday'; }
+      else if (/wed/i.test(dayStr)) { targetIdx = 3; dayLabel = 'Wednesday'; }
+      else if (/thu/i.test(dayStr)) { targetIdx = 4; dayLabel = 'Thursday'; }
+      else if (/fri/i.test(dayStr)) { targetIdx = 5; dayLabel = 'Friday'; }
+      else if (/sat/i.test(dayStr)) { targetIdx = 6; dayLabel = 'Saturday'; }
 
-      if (/mon/i.test(dayName)) { targetIndex = 1; labelDay = 'Monday'; }
-      else if (/tue/i.test(dayName)) { targetIndex = 2; labelDay = 'Tuesday'; }
-      else if (/wed/i.test(dayName)) { targetIndex = 3; labelDay = 'Wednesday'; }
-      else if (/thu/i.test(dayName)) { targetIndex = 4; labelDay = 'Thursday'; }
-      else if (/fri/i.test(dayName)) { targetIndex = 5; labelDay = 'Friday'; }
-      else if (/sat/i.test(dayName)) { targetIndex = 6; labelDay = 'Saturday'; }
+      var offset = getOffset(targetIdx);
+      var computed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
 
-      var singleDiff = getOffsetForDayIdx(targetIndex);
-      var singleDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + singleDiff);
-
-      return labelDay + ', ' + monthNames[singleDate.getMonth()] + ' ' + singleDate.getDate();
+      return {
+        timestamp: computed.getTime(),
+        tag: dayLabel + ', ' + monthNames[computed.getMonth()] + ' ' + computed.getDate()
+      };
     }
 
     // Shows Valiant only from Sunday 6:00 AM through Wednesday 9:00 PM (21:00)
@@ -1054,7 +1077,6 @@
       var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
       clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
 
-      // If it says "All Day"
       if (/all\s*day/i.test(clean)) {
         return '<span class="time-range">All Day</span>';
       }
@@ -1069,6 +1091,7 @@
     }
 
     // 3. Schedule Tab Handler
+    // Automatically adapts whether you have 6 columns (legacy) or 7 columns (with Date column)!
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
@@ -1079,19 +1102,47 @@
       var customYouthBlocks = [];
 
       var startIdx = 0;
-      if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][1] && rows[0][1].toLowerCase().indexOf('title') !== -1))) {
-        startIdx = 1;
+      var hasDateColumn = false;
+
+      // Check header row for "Date" column
+      if (rows[0] && rows[0][0]) {
+        var headerRow = rows[0].map(function(c) { return String(c).toLowerCase(); });
+        if (headerRow[1] && headerRow[1].indexOf('date') !== -1) {
+          hasDateColumn = true;
+          startIdx = 1;
+        } else if (headerRow[0] === 'day') {
+          startIdx = 1;
+        }
       }
 
       for (var i = startIdx; i < rows.length; i++) {
         var row = rows[i] || [];
         var dayStr = (row[0] || '').trim();
-        var titleStr = (row[1] || '').trim();
-        var timeStr = (row[2] || '').trim();
-        var subText = (row[3] || '').trim();
-        var linkTxt = (row[4] || '').trim();
-        var linkUrl = (row[5] || '').trim();
+        var dateVal = '';
+        var titleStr = '';
+        var timeStr = '';
+        var subText = '';
+        var linkTxt = '';
+        var linkUrl = '';
 
+        if (hasDateColumn) {
+          // Col A: Day | Col B: Date | Col C: Title | Col D: Time | Col E: Sub | Col F: LinkText | Col G: LinkUrl
+          dateVal = (row[1] || '').trim();
+          titleStr = (row[2] || '').trim();
+          timeStr = (row[3] || '').trim();
+          subText = (row[4] || '').trim();
+          linkTxt = (row[5] || '').trim();
+          linkUrl = (row[6] || '').trim();
+        } else {
+          // Col A: Day | Col B: Title | Col C: Time | Col D: Sub | Col E: LinkText | Col F: LinkUrl
+          titleStr = (row[1] || '').trim();
+          timeStr = (row[2] || '').trim();
+          subText = (row[3] || '').trim();
+          linkTxt = (row[4] || '').trim();
+          linkUrl = (row[5] || '').trim();
+        }
+
+        // Safely ignore blank rows
         if (!dayStr && !titleStr && !timeStr) continue;
         if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
 
@@ -1118,10 +1169,11 @@
             continue;
           }
 
-          var specificDateTag = getNextDateForDay(dayStr || 'Wednesday');
+          var eventDateInfo = resolveEventDate(dayStr, dateVal);
 
           customYouthBlocks.push({
-            dateTag: specificDateTag,
+            timestamp: eventDateInfo.timestamp,
+            dateTag: eventDateInfo.tag,
             time: cleanTime,
             title: titleStr,
             sub: subText,
@@ -1130,6 +1182,11 @@
           });
         }
       }
+
+      // Sort youth activities in chronological order
+      customYouthBlocks.sort(function(a, b) {
+        return a.timestamp - b.timestamp;
+      });
 
       // Render Sunday Services Card
       if (sundayBlocks.length > 0 && sundayContainer) {
@@ -1178,11 +1235,12 @@
             youthContainer.appendChild(slotDiv);
           });
         } else {
+          var defaultWedDate = resolveEventDate('Wednesday', '').tag;
           var ywDiv = document.createElement('div');
           ywDiv.className = 'time-slot';
           ywDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
             '<div class="time-content">' +
-            '<div class="time-date-tag">' + getNextDateForDay('Wednesday') + '</div>' +
+            '<div class="time-date-tag">' + defaultWedDate + '</div>' +
             '<div class="time-name">Young Women</div>' +
             '<div class="time-sub">Weekly youth activity & class night</div>' +
             '</div>';
@@ -1192,7 +1250,7 @@
           ymDiv.className = 'time-slot';
           ymDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
             '<div class="time-content">' +
-            '<div class="time-date-tag">' + getNextDateForDay('Wednesday') + '</div>' +
+            '<div class="time-date-tag">' + defaultWedDate + '</div>' +
             '<div class="time-name">Young Men</div>' +
             '<div class="time-sub">Weekly youth activity & quorum night</div>' +
             '</div>';
