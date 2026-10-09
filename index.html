@@ -747,9 +747,9 @@
 
     <!-- 2. Midweek & Youth Activities Schedule -->
     <div class="card" id="youthCard">
-      <div class="card-title">
+      <div class="card-title" id="youthCardTitle">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        Youth & Primary Midweek Schedule
+        <span id="youthHeaderLabel">Next Youth Activity</span>
       </div>
       <div id="youthTimeline"></div>
     </div>
@@ -857,7 +857,37 @@
       document.body.appendChild(script);
     }
 
-    // Shows only from Sunday 6:00 AM through Wednesday 9:00 PM (21:00)
+    // Dynamic Title: "Next Youth & Valiant Activity" on 1st/3rd Wed,
+    // otherwise "Next Youth Activity" on off-weeks.
+    function updateNextYouthHeader() {
+      var now = new Date();
+      var dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
+      var daysUntilWed = (3 - dayOfWeek + 7) % 7;
+
+      // If today is Wednesday past 9:00 PM, advance to the following Wednesday
+      if (dayOfWeek === 3 && now.getHours() >= 21) {
+        daysUntilWed = 7;
+      } else if (daysUntilWed === 0 && dayOfWeek !== 3) {
+        daysUntilWed = 7;
+      }
+
+      var nextWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilWed);
+      var dayOfMonth = nextWed.getDate();
+      var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
+      var hasValiant = (wedNumber === 1 || wedNumber === 3);
+
+      var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var formattedDate = 'Wednesday, ' + monthNames[nextWed.getMonth()] + ' ' + dayOfMonth;
+
+      var titlePrefix = hasValiant ? 'Next Youth & Valiant Activity' : 'Next Youth Activity';
+
+      var labelEl = document.getElementById('youthHeaderLabel');
+      if (labelEl) {
+        labelEl.textContent = titlePrefix + ' • ' + formattedDate;
+      }
+    }
+
+    // Shows Valiant only from Sunday 6:00 AM through Wednesday 9:00 PM (21:00)
     // leading up to a 1st or 3rd Wednesday of the month.
     function isValiantWeek() {
       var now = new Date();
@@ -1018,6 +1048,8 @@
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
       var youthContainer = document.getElementById('youthTimeline');
+
+      updateNextYouthHeader();
 
       var sundayBlocks = [];
       var sundayMap = {};
@@ -1241,6 +1273,7 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
+      updateNextYouthHeader();
       loadScript('Admin', 'handleAdmin');
       loadScript('General', 'handleGeneral');
       loadScript('Program', 'handleProgram');
