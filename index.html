@@ -395,7 +395,7 @@
       padding-top: 0;
     }
 
-    /* Time Badge on Left */
+    /* Left-side Time Badge */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
@@ -438,17 +438,6 @@
     .time-content {
       flex: 1;
       min-width: 0;
-    }
-
-    /* Distinct Date Tag in Green above each youth title */
-    .time-date-tag {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 2px;
-      display: block;
     }
 
     .time-name {
@@ -742,18 +731,7 @@
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         Sunday Services & Class Schedule
       </div>
-      <div id="sundayTimeline">
-        <div class="time-slot">
-          <span class="time-badge">
-            <span class="time-range">10:30 – 11:30</span>
-            <span class="time-meridiem">am</span>
-          </span>
-          <div class="time-content">
-            <div class="time-name">Sacrament Meeting</div>
-            <div class="time-sub">Chapel</div>
-          </div>
-        </div>
-      </div>
+      <div id="sundayTimeline"></div>
     </div>
 
     <!-- 2. Midweek & Youth Activities Schedule -->
@@ -868,50 +846,26 @@
       document.body.appendChild(script);
     }
 
-    // Resolves upcoming date label and timestamp for chronological ordering
-    function resolveEventDate(dayStr) {
-      var now = new Date();
-      var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    // Cleans time strings: removes prefixes like "Wed • " or "Wed - " and ensures proper formatting
+    function formatBadgeTime(rawTime) {
+      if (!rawTime) return '';
+      var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
+      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
 
-      function getOffset(targetIdx) {
-        var diff = (targetIdx - now.getDay() + 7) % 7;
-        if (diff === 0 && now.getHours() >= 21) diff = 7;
-        else if (diff === 0 && now.getDay() !== targetIdx) diff = 7;
-        return diff;
+      if (/all\s*day/i.test(clean)) {
+        return '<span class="time-range">All Day</span>';
       }
 
-      // Multi-Day Range: "Friday & Saturday", "Fri & Sat"
-      if (/fri/i.test(dayStr) && /sat/i.test(dayStr)) {
-        var friDiff = getOffset(5);
-        var fri = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff);
-        var sat = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff + 1);
-        return {
-          timestamp: fri.getTime(),
-          tag: 'Fri & Sat, ' + monthNames[fri.getMonth()] + ' ' + fri.getDate() + '–' + sat.getDate()
-        };
+      var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
+      if (match) {
+        var nums = match[1].trim();
+        var meridiem = match[2].toLowerCase();
+        return '<span class="time-range">' + nums + '</span><span class="time-meridiem">' + meridiem + '</span>';
       }
-
-      // Single Day Weekday
-      var targetIdx = 3; // Wednesday
-      var dayLabel = 'Wednesday';
-      if (/mon/i.test(dayStr)) { targetIdx = 1; dayLabel = 'Monday'; }
-      else if (/tue/i.test(dayStr)) { targetIdx = 2; dayLabel = 'Tuesday'; }
-      else if (/wed/i.test(dayStr)) { targetIdx = 3; dayLabel = 'Wednesday'; }
-      else if (/thu/i.test(dayStr)) { targetIdx = 4; dayLabel = 'Thursday'; }
-      else if (/fri/i.test(dayStr)) { targetIdx = 5; dayLabel = 'Friday'; }
-      else if (/sat/i.test(dayStr)) { targetIdx = 6; dayLabel = 'Saturday'; }
-
-      var offset = getOffset(targetIdx);
-      var computed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
-
-      return {
-        timestamp: computed.getTime(),
-        tag: dayLabel + ', ' + monthNames[computed.getMonth()] + ' ' + computed.getDate()
-      };
+      return '<span class="time-range">' + clean + '</span>';
     }
 
-    // Active ONLY Sunday 6am to Wednesday 9pm on 1st & 3rd Wednesday weeks
+    // Active ONLY Sunday 6:00 AM through Wednesday 9:00 PM leading up to a 1st or 3rd Wednesday
     function isValiantWeek() {
       var now = new Date();
       var dayOfWeek = now.getDay();
@@ -1049,26 +1003,8 @@
       }
     };
 
-    function formatBadgeTime(rawTime) {
-      if (!rawTime) return '';
-      var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
-      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
-
-      if (/all\s*day/i.test(clean)) {
-        return '<span class="time-range">All Day</span>';
-      }
-
-      var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
-      if (match) {
-        var nums = match[1].trim();
-        var meridiem = match[2].toLowerCase();
-        return '<span class="time-range">' + nums + '</span><span class="time-meridiem">' + meridiem + '</span>';
-      }
-      return '<span class="time-range">' + clean + '</span>';
-    }
-
     // 3. Schedule Tab Handler
-    // Maps strictly: Col A = Day, Col B = Type/Title, Col C = Time, Col D = Subtitle/Notes, Col E = LinkText, Col F = LinkUrl
+    // Col A = Day | Col B = Title | Col C = Time | Col D = Subtitle/Notes | Col E = LinkText | Col F = LinkUrl
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
@@ -1092,13 +1028,14 @@
         var linkTxt = (row[4] || '').trim();
         var linkUrl = (row[5] || '').trim();
 
-        // Safely skip empty spacer rows
+        // Safely skip blank spacer rows
         if (!dayStr && !titleStr && !timeStr) continue;
         if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
 
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
+          // Sunday Services Card: Left box gets timeStr, Right box gets titleStr
           var sKey = timeStr + '___' + titleStr;
           if (!sundayMap[sKey]) {
             var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
@@ -1109,33 +1046,36 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Midweek Activity Row
-          var combinedText = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
-          var isValiantRow = combinedText.indexOf('valiant') !== -1 || combinedText.indexOf('primary') !== -1;
+          // Youth & Midweek Activities Card
+          var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
+          var isValiant = combined.indexOf('valiant') !== -1 || combined.indexOf('primary') !== -1;
 
-          // If Valiant and NOT an active week/time, skip it!
-          if (isValiantRow && !isValiantWeek()) {
+          // If Valiant and NOT an active week/window: skip immediately!
+          if (isValiant && !isValiantWeek()) {
             continue;
           }
 
-          var eventDateInfo = resolveEventDate(dayStr);
+          // Build clean subtitle (e.g. "Wed • Subtitle" or "Fri & Sat • Subtitle")
+          var cleanDay = dayStr;
+          if (/^wed/i.test(cleanDay)) cleanDay = 'Wed';
+          else if (/fri/i.test(cleanDay) && /sat/i.test(cleanDay)) cleanDay = 'Fri & Sat';
+
+          var fullSub = '';
+          if (subText && cleanDay) {
+            fullSub = cleanDay + ' • ' + subText;
+          } else {
+            fullSub = subText || cleanDay;
+          }
 
           customYouthBlocks.push({
-            timestamp: eventDateInfo.timestamp,
-            dateTag: eventDateInfo.tag,
             time: timeStr || '7:00 – 8:00 pm',
             title: titleStr,
-            sub: subText,
+            sub: fullSub,
             linkText: linkTxt,
             linkUrl: linkUrl
           });
         }
       }
-
-      // Chronological sort
-      customYouthBlocks.sort(function(a, b) {
-        return a.timestamp - b.timestamp;
-      });
 
       // Render Sunday Services Card
       if (sundayBlocks.length > 0 && sundayContainer) {
@@ -1176,7 +1116,6 @@
 
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
               '<div class="time-content">' +
-              '<span class="time-date-tag">' + yb.dateTag + '</span>' +
               '<div class="time-name">' + yb.title + '</div>' +
               (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
               (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
