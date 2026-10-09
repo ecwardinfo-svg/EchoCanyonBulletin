@@ -326,6 +326,7 @@
       font-size: 13px;
       font-weight: 800;
       letter-spacing: 0.06em;
+      text-transform: uppercase;
       color: var(--text-muted);
       margin-bottom: 14px;
       display: flex;
@@ -395,7 +396,7 @@
       padding-top: 0;
     }
 
-    /* Left-side Badge (Strictly for Time) */
+    /* Clean Stacking Time Badge */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
@@ -434,20 +435,9 @@
       opacity: 0.85;
       text-transform: lowercase;
     }
-
     .time-content {
       flex: 1;
       min-width: 0;
-    }
-
-    .time-date-tag {
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 2px;
-      display: block;
     }
 
     .time-name {
@@ -741,16 +731,30 @@
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         Sunday Services & Class Schedule
       </div>
-      <div id="sundayTimeline"></div>
+      <div id="sundayTimeline">
+        <!-- Default Sunday Block Fallback -->
+        <div class="time-slot">
+          <span class="time-badge">
+            <span class="time-range">10:30 – 11:30</span>
+            <span class="time-meridiem">am</span>
+          </span>
+          <div class="time-content">
+            <div class="time-name">Sacrament Meeting</div>
+            <div class="time-sub">Chapel</div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 2. Midweek & Youth Activities Schedule -->
     <div class="card" id="youthCard">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        <span id="youthHeaderLabel">Next Youth Activity • Wednesday, Oct 14</span>
+        Youth & Primary Midweek Schedule
       </div>
-      <div id="youthTimeline"></div>
+      <div id="youthTimeline">
+        <!-- Loaded dynamically from Google Sheet 'Schedule' or smart calendar engine -->
+      </div>
     </div>
 
     <!-- Get in Touch Section -->
@@ -848,7 +852,7 @@
     function loadScript(sheetName, callbackName) {
       var script = document.createElement('script');
       var cacheBuster = Date.now();
-      script.crossOrigin = 'anonymous';
+      script.crossOrigin = 'anonymous'; // Strips logged-in Google cookies to fix iPad/Mac Safari
       script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
       script.onerror = function() {
         console.warn('Optional tab not loaded: ' + sheetName);
@@ -856,111 +860,44 @@
       document.body.appendChild(script);
     }
 
-    // Formats time cleanly for the left badge
-    function formatBadgeTime(rawTime) {
-      if (!rawTime) return '';
-      var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
-      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
-
-      if (/all\s*day/i.test(clean)) {
-        return '<span class="time-range">All Day</span>';
-      }
-
-      var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
-      if (match) {
-        var nums = match[1].trim();
-        var meridiem = match[2].toLowerCase();
-        return '<span class="time-range">' + nums + '</span><span class="time-meridiem">' + meridiem + '</span>';
-      }
-      return '<span class="time-range">' + clean + '</span>';
-    }
-
-    // Resolves upcoming date for single days or multi-day ranges (e.g. "Friday & Saturday")
-    function resolveEventDate(dayStr, explicitDateStr) {
-      var now = new Date();
-      var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-      if (explicitDateStr && explicitDateStr.trim()) {
-        return { tag: explicitDateStr.trim() };
-      }
-
-      function getOffset(targetIdx) {
-        var diff = (targetIdx - now.getDay() + 7) % 7;
-        if (diff === 0 && now.getHours() >= 21) diff = 7;
-        else if (diff === 0 && now.getDay() !== targetIdx) diff = 7;
-        return diff;
-      }
-
-      if (/fri/i.test(dayStr) && /sat/i.test(dayStr)) {
-        var friDiff = getOffset(5);
-        var fri = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff);
-        var sat = new Date(now.getFullYear(), now.getMonth(), now.getDate() + friDiff + 1);
-        return {
-          tag: 'Fri & Sat, ' + monthNames[fri.getMonth()] + ' ' + fri.getDate() + '–' + sat.getDate()
-        };
-      }
-
-      var targetIdx = 3;
-      var dayLabel = 'Wednesday';
-      if (/mon/i.test(dayStr)) { targetIdx = 1; dayLabel = 'Monday'; }
-      else if (/tue/i.test(dayStr)) { targetIdx = 2; dayLabel = 'Tuesday'; }
-      else if (/wed/i.test(dayStr)) { targetIdx = 3; dayLabel = 'Wednesday'; }
-      else if (/thu/i.test(dayStr)) { targetIdx = 4; dayLabel = 'Thursday'; }
-      else if (/fri/i.test(dayStr)) { targetIdx = 5; dayLabel = 'Friday'; }
-      else if (/sat/i.test(dayStr)) { targetIdx = 6; dayLabel = 'Saturday'; }
-
-      var offset = getOffset(targetIdx);
-      var computed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + offset);
-
-      return {
-        tag: dayLabel + ', ' + monthNames[computed.getMonth()] + ' ' + computed.getDate()
-      };
-    }
-
-    // Dynamic header: updates "Next Youth Activity • [Upcoming Date]"
-    function updateNextYouthHeader(targetDayIndex) {
-      var now = new Date();
-      var dayOfWeek = now.getDay();
-      var tIdx = (typeof targetDayIndex === 'number') ? targetDayIndex : 3;
-
-      var daysUntil = (tIdx - dayOfWeek + 7) % 7;
-      if (daysUntil === 0 && now.getHours() >= 21) daysUntil = 7;
-      else if (daysUntil === 0 && dayOfWeek !== tIdx) daysUntil = 7;
-
-      var nextDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntil);
-      var dayOfMonth = nextDate.getDate();
-      var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
-      var hasValiant = (tIdx === 3 && (wedNumber === 1 || wedNumber === 3));
-
-      var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-      var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      var formatted = dayNames[nextDate.getDay()] + ', ' + monthNames[nextDate.getMonth()] + ' ' + dayOfMonth;
-
-      var labelEl = document.getElementById('youthHeaderLabel');
-      if (labelEl) {
-        var titlePrefix = hasValiant ? 'Next Youth & Valiant Activity' : 'Next Youth Activity';
-        labelEl.textContent = titlePrefix + ' • ' + formatted;
-      }
-    }
-
-    // Active ONLY Sunday 6:00 AM through Wednesday 9:00 PM leading up to a 1st or 3rd Wednesday
+// Determines if Valiant activities should show:
+    // Becomes visible Sunday morning at 6:00 AM before a 1st or 3rd Wednesday,
+    // and hides Wednesday night at 9:00 PM (21:00).
     function isValiantWeek() {
       var now = new Date();
-      var dayOfWeek = now.getDay();
+      var dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
       var hour = now.getHours();
 
-      // Outside Sunday 6:00 AM to Wednesday 9:00 PM: hide
-      if (dayOfWeek === 0 && hour < 6) return false;
-      if (dayOfWeek > 3) return false;
-      if (dayOfWeek === 3 && hour >= 21) return false;
-
+      // Find the upcoming Wednesday of this current week/cycle
       var daysUntilWed = (3 - dayOfWeek + 7) % 7;
+
+      // If today is Wednesday after 9:00 PM, or Thu/Fri/Sat, target next Wednesday
+      if (dayOfWeek === 3 && hour >= 21) {
+        daysUntilWed = 7;
+      } else if (dayOfWeek > 3) {
+        // Thu, Fri, Sat: this week's Wednesday is over
+        daysUntilWed = (3 - dayOfWeek + 7);
+      }
+
       var targetWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilWed);
       var dayOfMonth = targetWed.getDate();
       var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
+      var isActiveWed = (wedNumber === 1 || wedNumber === 3);
 
-      return (wedNumber === 1 || wedNumber === 3);
+      // If the targeted Wednesday is not a 1st or 3rd Wednesday, keep hidden
+      if (!isActiveWed) return false;
+
+      // If it IS an active Wednesday, only show starting Sunday at 6:00 AM
+      // (Days 0, 1, 2, 3 before 9pm are visible)
+      if (dayOfWeek === 0 && hour < 6) {
+        return false; // Sunday before 6am: keep hidden
+      }
+
+      if (dayOfWeek === 3 && hour >= 21) {
+        return false; // Wednesday after 9pm: hide immediately
+      }
+
+      return (dayOfWeek <= 3);
     }
 
     // 0. Admin Tab Handler
@@ -1082,15 +1019,26 @@
       }
     };
 
+    function formatBadgeTime(rawTime) {
+      if (!rawTime) return '';
+      // Strip any day prefix (e.g. "Wed • ", "Wednesday • ")
+      var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
+
+      // Clean dash with regular spaces so browser line wrapping doesn't get confused
+      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
+
+      // Extract numbers and am/pm
+      var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
+      if (match) {
+        var nums = match[1].trim();
+        var meridiem = match[2].toLowerCase();
+        return '<span class="time-range">' + nums + '</span><span class="time-meridiem">' + meridiem + '</span>';
+      }
+      return '<span class="time-range">' + clean + '</span>';
+    }
+
     // 3. Schedule Tab Handler
-    // ACCURATE 7-COLUMN MAPPING MATCHING YOUR GOOGLE SHEET:
-    // Col A (0) = Day
-    // Col B (1) = Date
-    // Col C (2) = Type / Title
-    // Col D (3) = Time
-    // Col E (4) = Subtitle / Location / Notes
-    // Col F (5) = Link_text
-    // Col G (6) = Link_URL
+    // Col A = Day | Col B = Type / Title | Col C = Time | Col D = Subtitle / Notes | Col E = Link Text | Col F = Link URL
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
@@ -1099,34 +1047,36 @@
       var sundayBlocks = [];
       var sundayMap = {};
       var customYouthBlocks = [];
-      var detectedMidweekDay = null;
 
       var startIdx = 0;
-      if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][2] && rows[0][2].toLowerCase().indexOf('title') !== -1))) {
+      // Skip Row 1 if it contains headers like "Day", "Type / Title", "Time"
+      if (rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][1] && rows[0][1].toLowerCase().indexOf('title') !== -1))) {
         startIdx = 1;
       }
 
       for (var i = startIdx; i < rows.length; i++) {
-        var row = rows[i] || [];
-        var dayStr = (row[0] || '').trim();
-        var dateStr = (row[1] || '').trim();
-        var titleStr = (row[2] || '').trim();
-        var timeStr = (row[3] || '').trim();
-        var subText = (row[4] || '').trim();
-        var linkTxt = (row[5] || '').trim();
-        var linkUrl = (row[6] || '').trim();
+        var dayStr = (rows[i][0] || '').trim();
+        var titleStr = (rows[i][1] || '').trim();
+        var timeStr = (rows[i][2] || '').trim();
+        var subText = (rows[i][3] || '').trim();
+        var linkTxt = (rows[i][4] || '').trim();
+        var linkUrl = (rows[i][5] || '').trim();
 
-        // Safely skip spacer rows
         if (!dayStr && !titleStr && !timeStr) continue;
+
+        // Skip accidental header repeats
         if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
+
+        var cleanTime = timeStr.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
+        if (!cleanTime) cleanTime = timeStr || '7:00 – 8:00 pm';
 
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
-          // Sunday Services: Left Badge gets Time (Col D), Right Area gets Title (Col C)
-          var sKey = timeStr + '___' + titleStr;
+          // Sunday Services Block
+          var sKey = cleanTime + '___' + titleStr;
           if (!sundayMap[sKey]) {
-            var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
+            var newBlock = { time: cleanTime, title: titleStr, sub: subText, links: [] };
             sundayMap[sKey] = newBlock;
             sundayBlocks.push(newBlock);
           }
@@ -1134,46 +1084,18 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Detect midweek day
-          if (/tue/i.test(dayStr)) detectedMidweekDay = 2;
-          else if (/wed/i.test(dayStr) && detectedMidweekDay === null) detectedMidweekDay = 3;
-          else if (/thu/i.test(dayStr)) detectedMidweekDay = 4;
-
-          // Midweek Activity Row: check if Valiant
-          var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
-          var isValiant = combined.indexOf('valiant') !== -1 || combined.indexOf('primary') !== -1;
-
-          // If Valiant and NOT active week/window: skip immediately!
-          if (isValiant && !isValiantWeek()) {
-            continue;
-          }
-
-          var dateInfo = resolveEventDate(dayStr, dateStr);
-
-          // Subtitle formatting: displays clean day prefix or custom notes
-          var cleanDay = dayStr;
-          if (/^wed/i.test(cleanDay)) cleanDay = 'Wed';
-          else if (/fri/i.test(cleanDay) && /sat/i.test(cleanDay)) cleanDay = 'Fri & Sat';
-
-          var fullSub = subText;
-          if (dateStr && !subText) {
-            fullSub = dateStr;
-          }
-
+          // Midweek Activity Block (Time only on the left, Title on the right)
           customYouthBlocks.push({
-            time: timeStr || '7:00 – 8:00 pm',
+            time: cleanTime,
             title: titleStr,
-            sub: fullSub,
+            sub: subText,
             linkText: linkTxt,
             linkUrl: linkUrl
           });
         }
       }
 
-      // Update Header with detected weekday
-      updateNextYouthHeader(detectedMidweekDay !== null ? detectedMidweekDay : 3);
-
-      // Render Sunday Services Card
+      // Render Sunday Services
       if (sundayBlocks.length > 0 && sundayContainer) {
         sundayContainer.innerHTML = '';
         sundayBlocks.forEach(function(b) {
@@ -1201,7 +1123,7 @@
         });
       }
 
-      // Render Youth & Midweek Activities Card
+      // Render Youth & Midweek Section
       if (youthContainer) {
         youthContainer.innerHTML = '';
 
@@ -1210,6 +1132,7 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
 
+            // Clean time badge on the left (e.g. 7:00 – 8:00 / pm), group title & notes on the right
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
@@ -1218,6 +1141,45 @@
               '</div>';
             youthContainer.appendChild(slotDiv);
           });
+        } else {
+          // Default Automatic Smart Fallbacks
+          var ywDiv = document.createElement('div');
+          ywDiv.className = 'time-slot';
+          ywDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
+            '<div class="time-content">' +
+            '<div class="time-name">Young Women</div>' +
+            '<div class="time-sub">Weekly youth activity & class night</div>' +
+            '</div>';
+          youthContainer.appendChild(ywDiv);
+
+          var ymDiv = document.createElement('div');
+          ymDiv.className = 'time-slot';
+          ymDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
+            '<div class="time-content">' +
+            '<div class="time-name">Young Men</div>' +
+            '<div class="time-sub">Weekly youth activity & quorum night</div>' +
+            '</div>';
+          youthContainer.appendChild(ymDiv);
+
+          if (isValiantWeek()) {
+            var vbDiv = document.createElement('div');
+            vbDiv.className = 'time-slot';
+            vbDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
+              '<div class="time-content">' +
+              '<div class="time-name">Valiant Boys</div>' +
+              '<div class="time-sub">Valiant Boys (Ages 8–11)</div>' +
+              '</div>';
+            youthContainer.appendChild(vbDiv);
+
+            var vgDiv = document.createElement('div');
+            vgDiv.className = 'time-slot';
+            vgDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
+              '<div class="time-content">' +
+              '<div class="time-name">Valiant Girls</div>' +
+              '<div class="time-sub">Valiant Girls (Ages 8–11)</div>' +
+              '</div>';
+            youthContainer.appendChild(vgDiv);
+          }
         }
       }
     };
