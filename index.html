@@ -838,7 +838,6 @@
           if (!row || !row.c) return;
           var r = row.c.map(function(cell) {
             if (!cell || cell.v === null || cell.v === undefined) return '';
-            // If Google Sheets returns a formatted string (like "October 10"), prefer it
             if (cell.f) return String(cell.f).trim();
             return String(cell.v).trim();
           });
@@ -879,7 +878,7 @@
       return '<span class="time-range">' + clean + '</span>';
     }
 
-    // Converts any input (Google Sheets Date(...) object string or plain text) into a clean display & timestamp
+    // Resolves both sorting timestamp and formatted date string for Column B
     function resolveEventDate(dayStr, dateStr) {
       var now = new Date();
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -888,7 +887,7 @@
       if (dateStr && dateStr.trim()) {
         var trimmed = dateStr.trim();
 
-        // Check for Google Sheets raw date format: "Date(YYYY,M,D)"
+        // 1. Google Sheets raw date format: "Date(YYYY,M,D)" -> "Saturday, Oct 10"
         var gMatch = trimmed.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)/i);
         if (gMatch) {
           var y = parseInt(gMatch[1], 10);
@@ -902,7 +901,7 @@
           };
         }
 
-        // Check for "October 9-10" or "Oct 9-10" range
+        // 2. Multi-day range: "October 9-10" or "Oct 9-10" -> "Oct 9–10"
         var rangeMatch = trimmed.match(/^([a-z]+)\s*(\d{1,2})\s*[-–—]\s*(\d{1,2})/i);
         if (rangeMatch) {
           var mIdxRange = monthNames.findIndex(function(mn) {
@@ -912,12 +911,12 @@
             var rDate = new Date(now.getFullYear(), mIdxRange, parseInt(rangeMatch[2], 10), 12, 0, 0);
             return {
               timestamp: rDate.getTime(),
-              displayDate: rangeMatch[1] + ' ' + rangeMatch[2] + '–' + rangeMatch[3]
+              displayDate: monthNames[mIdxRange] + ' ' + rangeMatch[2] + '–' + rangeMatch[3]
             };
           }
         }
 
-        // Check for text like "October 10" or "Oct 10"
+        // 3. Single named date: "October 10" or "Oct 10" -> "Saturday, Oct 10"
         var match = trimmed.match(/^([a-z]+)\s*(\d{1,2})/i);
         if (match) {
           var mIdx = monthNames.findIndex(function(mn) {
@@ -933,7 +932,7 @@
           }
         }
 
-        // Standard string fallback
+        // 4. Standard string fallback
         var parsed = Date.parse(trimmed);
         if (!isNaN(parsed)) {
           var pDate = new Date(parsed);
