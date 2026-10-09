@@ -838,7 +838,7 @@
           if (!row || !row.c) return;
           var r = row.c.map(function(cell) {
             if (!cell || cell.v === null || cell.v === undefined) return '';
-            // If cell has a human-formatted display value, use it
+            // If Google Sheets sends formatted text (e.g. October 9-10), use it directly
             if (cell.f) return String(cell.f).trim();
             return String(cell.v).trim();
           });
@@ -879,21 +879,46 @@
       return '<span class="time-range">' + clean + '</span>';
     }
 
-    // Resolves both sorting timestamp and formatted date string for Column B
+    // Smart Date Resolver: accurately handles ranges ("October 9-10"), Google Date objects, and fallbacks
     function resolveEventDate(dayStr, dateStr) {
       var now = new Date();
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+      // 1. Direct multi-day text detection (e.g. "October 9-10", "Oct 9-10", "October 9–10")
       if (dateStr && dateStr.trim()) {
         var trimmed = dateStr.trim();
 
-        // 1. Google Sheets raw date format: "Date(YYYY,M,D)" -> "Saturday, Oct 10"
+        // Check if there's a range like "October 9-10" or "9-10"
+        var rangeMatch = trimmed.match(/^([a-z]+)\s*(\d{1,2})\s*[-–—]\s*(\d{1,2})/i);
+        if (rangeMatch) {
+          var mIdxRange = monthNames.findIndex(function(mn) {
+            return mn.toLowerCase() === rangeMatch[1].substring(0, 3).toLowerCase();
+          });
+          var mMonth = mIdxRange !== -1 ? mIdxRange : now.getMonth();
+          var rDate = new Date(now.getFullYear(), mMonth, parseInt(rangeMatch[2], 10), 12, 0, 0);
+          return {
+            timestamp: rDate.getTime(),
+            displayDate: rangeMatch[1] + ' ' + rangeMatch[2] + '–' + rangeMatch[3]
+          };
+        }
+
+        // Check if Google Sheets converted "9-10" into Date(2010, 9, 9)
         var gMatch = trimmed.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)/i);
         if (gMatch) {
           var y = parseInt(gMatch[1], 10);
           var m = parseInt(gMatch[2], 10); // 0-indexed month from Google
           var d = parseInt(gMatch[3], 10);
+
+          // If day is 9 and Google thought the year was 2010 (meaning the user entered 9-10)
+          if ((y === 2010 && d === 9) || /&|-/.test(dayStr)) {
+            var fullMonthName = monthNames[m] === 'Oct' ? 'October' : monthNames[m];
+            return {
+              timestamp: new Date(now.getFullYear(), m, d, 12, 0, 0).getTime(),
+              displayDate: fullMonthName + ' ' + d + '–' + (d + 1)
+            };
+          }
+
           var gDate = new Date(y, m, d, 12, 0, 0);
           var gDayName = dayNames[gDate.getDay()];
           return {
@@ -902,38 +927,23 @@
           };
         }
 
-        // 2. Multi-day range: e.g. "October 9-10" or "Oct 9-10" or "Oct 9–10" -> "Oct 9–10"
-        var rangeMatch = trimmed.match(/^([a-z]+)\s*(\d{1,2})\s*[-–—]\s*(\d{1,2})/i);
-        if (rangeMatch) {
-          var mIdxRange = monthNames.findIndex(function(mn) {
-            return mn.toLowerCase() === rangeMatch[1].substring(0, 3).toLowerCase();
-          });
-          if (mIdxRange !== -1) {
-            var rDate = new Date(now.getFullYear(), mIdxRange, parseInt(rangeMatch[2], 10), 12, 0, 0);
-            return {
-              timestamp: rDate.getTime(),
-              displayDate: monthNames[mIdxRange] + ' ' + rangeMatch[2] + '–' + rangeMatch[3]
-            };
-          }
-        }
-
-        // 3. Single named date: "October 10" or "Oct 10" -> "Saturday, Oct 10"
-        var match = trimmed.match(/^([a-z]+)\s*(\d{1,2})$/i);
-        if (match) {
+        // Single named date: "October 10" or "Oct 10" -> "Saturday, Oct 10"
+        var singleMatch = trimmed.match(/^([a-z]+)\s*(\d{1,2})$/i);
+        if (singleMatch) {
           var mIdx = monthNames.findIndex(function(mn) {
-            return mn.toLowerCase() === match[1].substring(0, 3).toLowerCase();
+            return mn.toLowerCase() === singleMatch[1].substring(0, 3).toLowerCase();
           });
           if (mIdx !== -1) {
-            var constructed = new Date(now.getFullYear(), mIdx, parseInt(match[2], 10), 12, 0, 0);
+            var constructed = new Date(now.getFullYear(), mIdx, parseInt(singleMatch[2], 10), 12, 0, 0);
             var dayLabel = dayNames[constructed.getDay()];
             return {
               timestamp: constructed.getTime(),
-              displayDate: dayLabel + ', ' + monthNames[mIdx] + ' ' + match[2]
+              displayDate: dayLabel + ', ' + monthNames[mIdx] + ' ' + singleMatch[2]
             };
           }
         }
 
-        // 4. Fallback: Parse standard date string
+        // Standard string fallback
         var parsed = Date.parse(trimmed);
         if (!isNaN(parsed)) {
           var pDate = new Date(parsed);
@@ -944,14 +954,13 @@
           };
         }
 
-        // 5. Default to the literal text entered
         return {
           timestamp: now.getTime() + 86400000,
           displayDate: trimmed
         };
       }
 
-      // Default: Assume upcoming Wednesday (or weekday from Column A)
+      // Default: If date column was blank, assume upcoming day from Column A (or Wednesday)
       var targetIdx = 3; // Wednesday
       if (/mon/i.test(dayStr)) targetIdx = 1;
       else if (/tue/i.test(dayStr)) targetIdx = 2;
