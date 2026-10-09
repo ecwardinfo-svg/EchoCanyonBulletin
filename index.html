@@ -448,7 +448,7 @@
       line-height: 1.35;
     }
 
-    /* Date line stacked directly below the title */
+    /* Date line directly below the title */
     .time-date-line {
       font-size: 12px;
       font-weight: 600;
@@ -457,7 +457,7 @@
       line-height: 1.35;
     }
 
-    /* Subtitle / Notes stacked directly below the date */
+    /* Subtitle / Notes directly below the date */
     .time-sub {
       font-size: 12px;
       color: var(--text-muted);
@@ -1123,11 +1123,11 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Midweek Activity Row: check if Valiant
+          // Check specifically if this row is for Valiant (do not block general Primary rehearsals/events)
           var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
-          var isValiant = combined.indexOf('valiant') !== -1 || combined.indexOf('primary') !== -1;
+          var isValiant = combined.indexOf('valiant') !== -1;
 
-          // If Valiant and NOT active week/window: skip immediately!
+          // If Valiant and NOT an active week/window, skip it!
           if (isValiant && !isValiantWeek()) {
             continue;
           }
@@ -1146,7 +1146,7 @@
         }
       }
 
-      // Sort youth activities in chronological order based on Column B date
+      // Sort youth activities in chronological order based on date
       customYouthBlocks.sort(function(a, b) {
         return a.timestamp - b.timestamp;
       });
@@ -1188,7 +1188,7 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
 
-            // Clean Time on the Left; Bold Title, then Date line, then Notes line on the Right
+            // Clean Time on Left; Bold Title, Date line, Notes line on Right
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
