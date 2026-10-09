@@ -838,6 +838,7 @@
           if (!row || !row.c) return;
           var r = row.c.map(function(cell) {
             if (!cell || cell.v === null || cell.v === undefined) return '';
+            // If cell has a human-formatted display value, use it
             if (cell.f) return String(cell.f).trim();
             return String(cell.v).trim();
           });
@@ -901,7 +902,7 @@
           };
         }
 
-        // 2. Multi-day range: "October 9-10" or "Oct 9-10" -> "Oct 9–10"
+        // 2. Multi-day range: e.g. "October 9-10" or "Oct 9-10" or "Oct 9–10" -> "Oct 9–10"
         var rangeMatch = trimmed.match(/^([a-z]+)\s*(\d{1,2})\s*[-–—]\s*(\d{1,2})/i);
         if (rangeMatch) {
           var mIdxRange = monthNames.findIndex(function(mn) {
@@ -917,7 +918,7 @@
         }
 
         // 3. Single named date: "October 10" or "Oct 10" -> "Saturday, Oct 10"
-        var match = trimmed.match(/^([a-z]+)\s*(\d{1,2})/i);
+        var match = trimmed.match(/^([a-z]+)\s*(\d{1,2})$/i);
         if (match) {
           var mIdx = monthNames.findIndex(function(mn) {
             return mn.toLowerCase() === match[1].substring(0, 3).toLowerCase();
@@ -932,7 +933,7 @@
           }
         }
 
-        // 4. Standard string fallback
+        // 4. Fallback: Parse standard date string
         var parsed = Date.parse(trimmed);
         if (!isNaN(parsed)) {
           var pDate = new Date(parsed);
@@ -943,6 +944,7 @@
           };
         }
 
+        // 5. Default to the literal text entered
         return {
           timestamp: now.getTime() + 86400000,
           displayDate: trimmed
