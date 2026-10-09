@@ -4,13 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Echo Canyon Ward • Digital Bulletin</title>
-
-  <!-- iOS Home Screen App Icon & Favicon -->
   <link rel="apple-touch-icon" href="https://ecwardinfo-svg.github.io/EchoCanyonBulletin/apple-touch-icon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="https://ecwardinfo-svg.github.io/EchoCanyonBulletin/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="https://ecwardinfo-svg.github.io/EchoCanyonBulletin/apple-touch-icon.png">
   <meta name="apple-mobile-web-app-title" content="Echo Canyon">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
@@ -30,7 +27,6 @@
       --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
       --radius: 16px;
     }
-
     [data-theme="dark"] {
       --bg: #090D16;
       --card-bg: #111827;
@@ -45,18 +41,8 @@
       --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
       --shadow-md: 0 4px 14px rgba(0,0,0,0.3);
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg);
@@ -68,609 +54,111 @@
       padding-bottom: 120px;
       transition: background 0.25s ease, color 0.25s ease;
     }
-
-    .app-shell {
-      width: 100%;
-      max-width: 440px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .section-anchor {
-      scroll-margin-top: 12px;
-    }
-
-    /* Top Bar */
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 4px 2px 8px;
-    }
-
+    .app-shell { width: 100%; max-width: 440px; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+    .section-anchor { scroll-margin-top: 12px; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 4px 2px 8px; }
     .ward-pill {
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--accent);
-      background: var(--accent-light);
-      padding: 4px 10px;
-      border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--accent); background: var(--accent-light); padding: 4px 10px; border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 6px;
     }
-
     .theme-toggle-btn {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: var(--shadow-sm);
-      transition: all 0.2s;
+      background: var(--card-bg); border: 1px solid var(--card-border); color: var(--text-main);
+      width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; box-shadow: var(--shadow-sm); transition: all 0.2s;
     }
-    .theme-toggle-btn:active {
-      transform: scale(0.92);
-    }
-
-    /* Header Card */
+    .theme-toggle-btn:active { transform: scale(0.92); }
     .header-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 24px 20px 20px;
-      text-align: center;
-      box-shadow: var(--shadow-md);
-      position: relative;
-      overflow: hidden;
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius);
+      padding: 24px 20px 20px; text-align: center; box-shadow: var(--shadow-md); position: relative; overflow: hidden;
     }
-
     .header-card::before {
-      content: "";
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 4px;
+      content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px;
       background: linear-gradient(90deg, #1E3A8A, #0D9488, #3B82F6);
     }
-
-    .ward-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 26px;
-      font-weight: 700;
-      color: var(--text-main);
-      letter-spacing: -0.01em;
-      margin-bottom: 2px;
-    }
-
-    .church-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      margin-bottom: 12px;
-    }
-
-    .date-badge {
-      display: inline-block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--primary);
-      background: var(--primary-light);
-      padding: 4px 14px;
-      border-radius: 20px;
-    }
-
-    /* Sacred Scripture Frame */
+    .ward-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--text-main); letter-spacing: -0.01em; margin-bottom: 2px; }
+    .church-sub { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+    .date-badge { display: inline-block; font-size: 13px; font-weight: 600; color: var(--primary); background: var(--primary-light); padding: 4px 14px; border-radius: 20px; }
     .sacred-frame {
-      margin-top: 18px;
-      position: relative;
-      border-radius: 12px;
-      overflow: hidden;
+      margin-top: 18px; position: relative; border-radius: 12px; overflow: hidden;
       background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-      min-height: 200px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 20px 16px;
-      text-align: center;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15); min-height: 200px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 20px 16px; text-align: center;
     }
-
-    .weekly-img {
-      width: 100%;
-      height: 180px;
-      object-fit: cover;
-      border-radius: 8px;
-      margin-bottom: 14px;
-      display: none;
-    }
-
-    .sacred-svg {
-      width: 64px;
-      height: 64px;
-      color: #93C5FD;
-      margin-bottom: 12px;
-      opacity: 0.95;
-    }
-
-    .sacred-quote {
-      font-family: 'Playfair Display', serif;
-      font-style: italic;
-      color: #F8FAFC;
-      font-size: 15.5px;
-      line-height: 1.45;
-      max-width: 320px;
-    }
-
-    .sacred-citation {
-      color: #67E8F9;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-top: 10px;
-    }
-
-    /* Broadcast Callout */
+    .weekly-img { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 14px; display: none; }
+    .sacred-svg { width: 64px; height: 64px; color: #93C5FD; margin-bottom: 12px; opacity: 0.95; }
+    .sacred-quote { font-family: 'Playfair Display', serif; font-style: italic; color: #F8FAFC; font-size: 15.5px; line-height: 1.45; max-width: 320px; }
+    .sacred-citation { color: #67E8F9; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 10px; }
     .broadcast-card {
-      background: var(--primary-light);
-      border: 1px solid rgba(30, 58, 138, 0.15);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      background: var(--primary-light); border: 1px solid rgba(30, 58, 138, 0.15); border-radius: var(--radius);
+      padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
     }
-
-    .broadcast-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .broadcast-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      background: var(--primary);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .broadcast-title {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
-
-    .broadcast-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-    }
-
-    .broadcast-btn {
-      background: var(--primary);
-      color: #ffffff !important;
-      font-size: 12px;
-      font-weight: 700;
-      text-decoration: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      white-space: nowrap;
-      transition: opacity 0.15s;
-    }
-    .broadcast-btn:active {
-      opacity: 0.85;
-    }
-
-    /* Dynamic Special Event Banner */
-    .primary-highlight-card {
-      background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%);
-      color: #FFFFFF;
-      border-radius: var(--radius);
-      padding: 20px;
-      box-shadow: 0 8px 20px -4px rgba(30, 58, 138, 0.35);
-      position: relative;
-    }
-
-    .primary-badge {
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      background: rgba(255, 255, 255, 0.18);
-      padding: 3px 8px;
-      border-radius: 6px;
-      display: inline-block;
-      margin-bottom: 8px;
-    }
-
-    .primary-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 20px;
-      font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 6px;
-    }
-
-    .primary-desc {
-      font-size: 12px;
-      opacity: 0.9;
-      line-height: 1.4;
-    }
-
-    /* Standard Card */
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius);
-      padding: 18px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .card-title {
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      margin-bottom: 14px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      text-transform: uppercase;
-    }
-
-    /* Program List */
-    .program-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--card-border);
-      gap: 12px;
-    }
-    .program-item:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-    .program-item:first-child {
-      padding-top: 0;
-    }
-
-    .program-label {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .program-val {
-      font-size: 13px;
-      color: var(--text-muted);
-      text-align: right;
-    }
-
-    .hymn-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--accent-light);
-      color: var(--accent);
-      padding: 5px 10px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: 700;
-      font-size: 12px;
-      transition: all 0.15s;
-    }
-    .hymn-link:active {
-      transform: scale(0.96);
-    }
-
-    /* Schedule Timeline */
-    .time-slot {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--card-border);
-    }
-    .time-slot:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-    .time-slot:first-child {
-      padding-top: 0;
-    }
-
-    /* Left-side Badge (Strictly for Time) */
-    .time-badge {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--primary);
-      background: var(--primary-light);
-      padding: 6px 4px;
-      border-radius: 8px;
-      width: 96px;
-      min-width: 96px;
-      flex-shrink: 0;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1px;
-    }
-    .time-badge.accent-badge {
-      color: var(--accent);
-      background: var(--accent-light);
-    }
-    .time-range {
-      display: block;
-      white-space: nowrap;
-      font-size: 11px;
-      font-weight: 700;
-      line-height: 1.25;
-      letter-spacing: -0.01em;
-    }
-    .time-meridiem {
-      display: block;
-      white-space: nowrap;
-      font-size: 10px;
-      font-weight: 700;
-      line-height: 1;
-      opacity: 0.85;
-      text-transform: lowercase;
-    }
-
-    .time-content {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .time-name {
-      font-size: 13.5px;
-      font-weight: 700;
-      color: var(--text-main);
-      line-height: 1.35;
-    }
-
-    /* Date line stacked directly below the title */
-    .time-date-line {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--accent);
-      margin-top: 2px;
-      line-height: 1.35;
-    }
-
-    /* Subtitle / Notes stacked directly below the date */
-    .time-sub {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 2px;
-      line-height: 1.4;
-    }
-
-    .class-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      margin-top: 6px;
-      width: 100%;
-    }
-
-    .lesson-link-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 11.5px;
-      font-weight: 700;
-      color: var(--primary);
-      background: var(--primary-light);
-      padding: 7px 11px;
-      border-radius: 6px;
-      text-decoration: none;
-      transition: all 0.15s ease;
-    }
-    .lesson-link-btn:active {
-      transform: scale(0.97);
-      background: var(--accent-light);
-      color: var(--accent);
-    }
-
-    /* Directory Rows */
-    .directory-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--card-border);
-    }
-    .directory-row:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-
-    .dir-role {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .dir-name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .dir-actions {
-      display: flex;
-      gap: 8px;
-    }
-
-    .action-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: #334155;
-      text-decoration: none;
-      transition: all 0.15s ease;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-    }
-
-    [data-theme="dark"] .action-btn {
-      color: #CBD5E1;
-      background: #1E293B;
-      border-color: #334155;
-    }
-
-    .action-btn:active {
-      background: var(--accent);
-      border-color: var(--accent);
-      color: #FFFFFF;
-      transform: scale(0.92);
-    }
-
-    .action-btn svg {
-      width: 17px;
-      height: 17px;
-      pointer-events: none;
-    }
-
-    /* Announcements */
-    .notice-item {
-      padding: 12px 0;
-      border-bottom: 1px solid var(--card-border);
-    }
-    .notice-item:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-    .notice-tag {
-      font-size: 10px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 2px;
-    }
-    .notice-title {
-      font-size: 13.5px;
-      font-weight: 700;
-      color: var(--text-main);
-      margin-bottom: 4px;
-    }
-    .notice-body {
-      font-size: 12px;
-      color: var(--text-muted);
-      line-height: 1.45;
-    }
-
-    .signup-card {
-      background: var(--accent-light);
-      border: 1px solid rgba(13, 148, 136, 0.2);
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-    }
-    .signup-text {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--accent);
-    }
-    .signup-btn {
-      background: var(--accent);
-      color: #FFFFFF !important;
-      padding: 6px 12px;
-      border-radius: 6px;
-      font-size: 11.5px;
-      font-weight: 700;
-      text-decoration: none;
-      white-space: nowrap;
-    }
-
-    /* Bottom Nav Bar */
+    .broadcast-info { display: flex; align-items: center; gap: 10px; }
+    .broadcast-icon { width: 34px; height: 34px; border-radius: 8px; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .broadcast-title { font-size: 13px; font-weight: 700; color: var(--text-main); }
+    .broadcast-sub { font-size: 11px; color: var(--text-muted); }
+    .broadcast-btn { background: var(--primary); color: #ffffff !important; font-size: 12px; font-weight: 700; text-decoration: none; padding: 8px 14px; border-radius: 8px; white-space: nowrap; }
+    .broadcast-btn:active { opacity: 0.85; }
+    .primary-highlight-card { background: linear-gradient(135deg, #1E3A8A 0%, #172554 100%); color: #FFFFFF; border-radius: var(--radius); padding: 20px; box-shadow: 0 8px 20px -4px rgba(30, 58, 138, 0.35); position: relative; }
+    .primary-badge { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(255, 255, 255, 0.18); padding: 3px 8px; border-radius: 6px; display: inline-block; margin-bottom: 8px; }
+    .primary-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+    .primary-desc { font-size: 12px; opacity: 0.9; line-height: 1.4; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow-sm); }
+    .card-title { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 14px; display: flex; align-items: center; gap: 6px; text-transform: uppercase; }
+    .program-item { display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--card-border); gap: 12px; }
+    .program-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .program-item:first-child { padding-top: 0; }
+    .program-label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .program-val { font-size: 13px; color: var(--text-muted); text-align: right; }
+    .hymn-link { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-light); color: var(--accent); padding: 5px 10px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 12px; }
+    .hymn-link:active { transform: scale(0.96); }
+    .time-slot { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--card-border); }
+    .time-slot:last-child { border-bottom: none; padding-bottom: 0; }
+    .time-slot:first-child { padding-top: 0; }
+    .time-badge { font-size: 11px; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 6px 4px; border-radius: 8px; width: 96px; min-width: 96px; flex-shrink: 0; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; }
+    .time-badge.accent-badge { color: var(--accent); background: var(--accent-light); }
+    .time-range { display: block; white-space: nowrap; font-size: 11px; font-weight: 700; line-height: 1.25; letter-spacing: -0.01em; }
+    .time-meridiem { display: block; white-space: nowrap; font-size: 10px; font-weight: 700; line-height: 1; opacity: 0.85; text-transform: lowercase; }
+    .time-content { flex: 1; min-width: 0; }
+    .time-name { font-size: 13.5px; font-weight: 700; color: var(--text-main); line-height: 1.35; }
+    .time-date-line { font-size: 12px; font-weight: 600; color: var(--accent); margin-top: 2px; line-height: 1.35; }
+    .time-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; line-height: 1.4; }
+    .class-grid { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; width: 100%; }
+    .lesson-link-btn { display: inline-flex; align-items: center; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: var(--primary); background: var(--primary-light); padding: 7px 11px; border-radius: 6px; text-decoration: none; }
+    .lesson-link-btn:active { transform: scale(0.97); background: var(--accent-light); color: var(--accent); }
+    .directory-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--card-border); }
+    .directory-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .dir-role { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .dir-name { font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .dir-actions { display: flex; gap: 8px; }
+    .action-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--card-border); display: inline-flex; align-items: center; justify-content: center; color: #334155; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    [data-theme="dark"] .action-btn { color: #CBD5E1; background: #1E293B; border-color: #334155; }
+    .action-btn:active { background: var(--accent); border-color: var(--accent); color: #FFFFFF; transform: scale(0.92); }
+    .action-btn svg { width: 17px; height: 17px; pointer-events: none; }
+    .notice-item { padding: 12px 0; border-bottom: 1px solid var(--card-border); }
+    .notice-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .notice-tag { font-size: 10px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); margin-bottom: 2px; }
+    .notice-title { font-size: 13.5px; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+    .notice-body { font-size: 12px; color: var(--text-muted); line-height: 1.45; }
+    .signup-card { background: var(--accent-light); border: 1px solid rgba(13, 148, 136, 0.2); border-radius: 10px; padding: 12px 14px; margin-top: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .signup-text { font-size: 12px; font-weight: 600; color: var(--accent); }
+    .signup-btn { background: var(--accent); color: #FFFFFF !important; padding: 6px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700; text-decoration: none; white-space: nowrap; }
     .bottom-bar {
-      position: fixed;
-      bottom: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 32px);
-      max-width: 410px;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 999px;
-      padding: 6px 8px;
-      display: flex;
-      justify-content: space-around;
+      position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 410px;
+      background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 999px; padding: 6px 8px;
+      display: flex; justify-content: space-around;
       box-shadow: 0 10px 25px -3px rgba(0,0,0,0.18), 0 4px 6px -2px rgba(0,0,0,0.08);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 9999;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 9999;
     }
-
-    .nav-link {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-      padding: 6px 12px;
-      text-decoration: none;
-      color: var(--text-muted);
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 12px;
-      transition: color 0.15s ease, transform 0.15s ease;
-      cursor: pointer;
-      user-select: none;
-    }
-
-    .nav-link:active {
-      transform: scale(0.92);
-      color: var(--accent);
-    }
-
-    .nav-link svg {
-      width: 19px;
-      height: 19px;
-      pointer-events: none;
-    }
-
-    .nav-link span {
-      pointer-events: none;
-    }
+    .nav-link { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 12px; text-decoration: none; color: var(--text-muted); font-size: 11px; font-weight: 700; border-radius: 12px; cursor: pointer; user-select: none; }
+    .nav-link:active { transform: scale(0.92); color: var(--accent); }
+    .nav-link svg { width: 19px; height: 19px; pointer-events: none; }
+    .nav-link span { pointer-events: none; }
   </style>
 </head>
 <body>
-
   <div class="app-shell">
-
-    <!-- Top Status Bar -->
     <div class="top-bar">
       <div class="ward-pill">
         <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor;"></span>
@@ -680,14 +168,10 @@
         <svg id="moonIcon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
       </button>
     </div>
-
-    <!-- Main Header Card -->
     <div class="header-card">
       <h1 class="ward-title" id="wardTitle">Echo Canyon Ward</h1>
       <p class="church-sub" id="churchSub">The Church of Jesus Christ of Latter-day Saints</p>
       <div class="date-badge" id="bulletinDate">Sunday, October 11, 2026</div>
-
-      <!-- Sacred Frame with Image of the Week Support -->
       <div class="sacred-frame">
         <img id="weeklyImg" class="weekly-img" alt="Picture of the Week">
         <svg id="sacredSvg" class="sacred-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
@@ -701,8 +185,6 @@
         <span class="sacred-citation" id="scriptureCitation">Isaiah 40:31</span>
       </div>
     </div>
-
-    <!-- Sacrament Meeting Broadcast Link -->
     <div class="broadcast-card" id="broadcastContainer">
       <div class="broadcast-info">
         <div class="broadcast-icon">
@@ -715,15 +197,11 @@
       </div>
       <a class="broadcast-btn" id="broadcastLink" href="https://www.churchofjesuschrist.org/media/broadcasts/local-meeting-554312?lang=eng" target="_blank" rel="noopener noreferrer">Watch Broadcast ↗</a>
     </div>
-
-    <!-- Dynamic Special Event / 5th Sunday / Primary Banner -->
     <div class="primary-highlight-card" id="specialEventCard" style="display:none;">
       <span class="primary-badge" id="specialEventBadge">Special Presentation</span>
       <h2 class="primary-title" id="specialEventTitle"></h2>
       <p class="primary-desc" id="specialEventDesc"></p>
     </div>
-
-    <!-- Dynamic Sacrament Program Agenda (Anchored Flush) -->
     <div class="card section-anchor" id="program">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -736,8 +214,6 @@
         <div class="program-item"><span class="program-label">Organist</span><span class="program-val">Callie Beachman</span></div>
       </div>
     </div>
-
-    <!-- 1. Sunday Services & Class Schedule -->
     <div class="card section-anchor" id="schedule">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -745,8 +221,6 @@
       </div>
       <div id="sundayTimeline"></div>
     </div>
-
-    <!-- 2. Midweek & Youth Activities Schedule -->
     <div class="card" id="youthCard">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -754,8 +228,6 @@
       </div>
       <div id="youthTimeline"></div>
     </div>
-
-    <!-- Get in Touch Section -->
     <div class="card section-anchor" id="contact">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
@@ -763,8 +235,6 @@
       </div>
       <div id="directoryList"></div>
     </div>
-
-    <!-- Announcements -->
     <div class="card section-anchor" id="announcements">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
@@ -772,599 +242,352 @@
       </div>
       <div id="announcementsList"></div>
     </div>
-
   </div>
-
-  <!-- Bottom Floating Navigation -->
   <nav class="bottom-bar" aria-label="Quick Navigation">
-    <a href="#program" class="nav-link" onclick="scrollToId('program', event)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-      <span>Program</span>
-    </a>
-    <a href="#schedule" class="nav-link" onclick="scrollToId('schedule', event)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-      <span>Schedule</span>
-    </a>
-    <a href="#contact" class="nav-link" onclick="scrollToId('contact', event)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-      <span>Contact</span>
-    </a>
-    <a href="#announcements" class="nav-link" onclick="scrollToId('announcements', event)">
-      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg>
-      <span>Updates</span>
-    </a>
+    <a href="#program" class="nav-link" onclick="scrollToId('program', event)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span>Program</span></a>
+    <a href="#schedule" class="nav-link" onclick="scrollToId('schedule', event)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg><span>Schedule</span></a>
+    <a href="#contact" class="nav-link" onclick="scrollToId('contact', event)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span>Contact</span></a>
+    <a href="#announcements" class="nav-link" onclick="scrollToId('announcements', event)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg><span>Updates</span></a>
   </nav>
-
   <script>
-  function scrollToId(targetId, event) {
-    if (event) event.preventDefault();
-    var el = document.getElementById(targetId);
-    if (el) {
-      var yOffset = 0;
-      var y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
-      window.scrollTo({ top: y, behavior: 'smooth' });
+    function scrollToId(targetId, event) {
+      if (event) event.preventDefault();
+      var el = document.getElementById(targetId);
+      if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset, behavior: 'smooth' });
     }
-  }
-
-  var toggleBtn = document.getElementById('themeToggle');
-  if (toggleBtn) {
-    toggleBtn.addEventListener('click', function() {
-      var current = document.documentElement.getAttribute('data-theme');
-      var next = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-    });
-  }
-
-  var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
-
-  function formatSheetDate(year, monthIndex, day) {
-    var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    var m = parseInt(monthIndex, 10);
-    var d = parseInt(day, 10);
-    var y = parseInt(year, 10);
-    if (isNaN(m) || isNaN(d)) return '';
-    return monthNames[m] + ' ' + d + (isNaN(y) ? '' : ', ' + y);
-  }
-
-  function cellText(cell) {
-    if (!cell) return '';
-    if (cell.f !== null && cell.f !== undefined && String(cell.f).trim() !== '') {
-      return String(cell.f).trim();
-    }
-    if (cell.v === null || cell.v === undefined) return '';
-    var raw = String(cell.v).trim();
-    var dateMatch = raw.match(/^Date\((\d+),(\d+),(\d+)\)$/);
-    if (dateMatch) return formatSheetDate(dateMatch[1], dateMatch[2], dateMatch[3]);
-    return raw;
-  }
-
-  function extractTable(jsonObj) {
-    if (!jsonObj || !jsonObj.table) return [];
-    var result = [];
-
-    if (jsonObj.table.cols && jsonObj.table.cols.length > 0) {
-      var colRow = jsonObj.table.cols.map(function(c) {
-        return c && c.label ? String(c.label).trim() : '';
-      });
-      if (colRow.some(function(v) { return v !== ''; })) {
-        result.push(colRow);
-      }
-    }
-
-    if (jsonObj.table.rows) {
-      jsonObj.table.rows.forEach(function(row) {
-        if (!row || !row.c) return;
-        var r = row.c.map(function(cell) {
-          return cellText(cell);
-        });
-        result.push(r);
+    var toggleBtn = document.getElementById('themeToggle');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function() {
+        var current = document.documentElement.getAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
       });
     }
-
-    return result;
-  }
-
-  function loadScript(sheetName, callbackName) {
-    var script = document.createElement('script');
-    var cacheBuster = Date.now();
-    script.crossOrigin = 'anonymous';
-    script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
-    script.onerror = function() {
-      console.warn('Optional tab not loaded: ' + sheetName);
-    };
-    document.body.appendChild(script);
-  }
-
-  function formatBadgeTime(rawTime) {
-    if (!rawTime) return '';
-    var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
-    clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
-
-    if (/all\s*day/i.test(clean)) {
-      return '<span class="time-range">All Day</span>';
+    var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
+    function formatSheetDate(year, monthIndex, day) {
+      var monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      var m = parseInt(monthIndex, 10), d = parseInt(day, 10), y = parseInt(year, 10);
+      if (isNaN(m) || isNaN(d)) return '';
+      return monthNames[m] + ' ' + d + (isNaN(y) ? '' : ', ' + y);
     }
-
-    var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
-    if (match) {
-      var nums = match[1].trim();
-      var meridiem = match[2].toLowerCase();
-      return '<span class="time-range">' + nums + '</span><span class="time-meridiem">' + meridiem + '</span>';
-    }
-    return '<span class="time-range">' + clean + '</span>';
-  }
-
-  function resolveEventDate(dayStr, dateStr) {
-    var now = new Date();
-    var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    var fullMonths = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
-    var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-
-    function dayIndex(token) {
-      var t = (token || '').toLowerCase();
-      if (t.indexOf('sun') === 0) return 0;
-      if (t.indexOf('mon') === 0) return 1;
-      if (t.indexOf('tue') === 0) return 2;
-      if (t.indexOf('wed') === 0) return 3;
-      if (t.indexOf('thu') === 0) return 4;
-      if (t.indexOf('fri') === 0) return 5;
-      if (t.indexOf('sat') === 0) return 6;
-      return -1;
-    }
-
-    function pretty(d) {
-      return dayNames[d.getDay()] + ', ' + monthNames[d.getMonth()] + ' ' + d.getDate();
-    }
-
-    function upcoming(targetIdx, hour) {
-      var diff = (targetIdx - now.getDay() + 7) % 7;
-      if (diff === 0 && now.getHours() >= 21) diff = 7;
-      return new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, hour || 12, 0, 0);
-    }
-
-    function parseOne(token) {
-      var trimmed = (token || '').trim();
-      if (!trimmed) return null;
-      var sheetDate = trimmed.match(/^Date\((\d+),(\d+),(\d+)\)$/);
-      if (sheetDate) {
-        return new Date(parseInt(sheetDate[1], 10), parseInt(sheetDate[2], 10), parseInt(sheetDate[3], 10), 12, 0, 0);
+    function cellText(cell) {
+      if (!cell) return '';
+      if (cell.f !== null && cell.f !== undefined && String(cell.f).trim() !== '') return String(cell.f).trim();
+      if (cell.v === null || cell.v === undefined) return '';
+      if (Object.prototype.toString.call(cell.v) === '[object Date]' && !isNaN(cell.v.getTime())) {
+        return formatSheetDate(cell.v.getFullYear(), cell.v.getMonth(), cell.v.getDate());
       }
-      var named = trimmed.match(/^([a-z]+)\s+(\d{1,2})(?:,?\s*(\d{4}))?/i);
-      if (named) {
-        var mIdx = fullMonths.indexOf(named[1].toLowerCase());
-        if (mIdx === -1) {
-          mIdx = fullMonths.findIndex(function(m) { return m.indexOf(named[1].toLowerCase()) === 0; });
-        }
-        if (mIdx !== -1) {
-          var year = named[3] ? parseInt(named[3], 10) : now.getFullYear();
-          return new Date(year, mIdx, parseInt(named[2], 10), 12, 0, 0);
-        }
+      var raw = String(cell.v).trim();
+      var dateMatch = raw.match(/Date\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)/);
+      if (dateMatch) return formatSheetDate(dateMatch[1], dateMatch[2], dateMatch[3]);
+      return raw;
+    }
+    function extractTable(jsonObj) {
+      if (!jsonObj || !jsonObj.table) return [];
+      var result = [];
+      if (jsonObj.table.cols && jsonObj.table.cols.length > 0) {
+        var colRow = jsonObj.table.cols.map(function(c) { return c && c.label ? String(c.label).trim() : ''; });
+        if (colRow.some(function(v) { return v !== ''; })) result.push(colRow);
       }
-      var slash = trimmed.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
-      if (slash) {
-        var year2 = slash[3] ? parseInt(slash[3], 10) : now.getFullYear();
-        if (year2 < 100) year2 += 2000;
-        return new Date(year2, parseInt(slash[1], 10) - 1, parseInt(slash[2], 10), 12, 0, 0);
-      }
-      var parsed = Date.parse(trimmed);
-      if (!isNaN(parsed)) {
-        var d = new Date(parsed);
-        if (d.getFullYear() < 2020) d.setFullYear(now.getFullYear());
-        return d;
-      }
-      return null;
-    }
-
-    var dayPair = (dayStr || '').match(/([a-z]+)\s*(?:&|and)\s*([a-z]+)/i);
-    var startIdx = dayPair ? dayIndex(dayPair[1]) : dayIndex(dayStr);
-    var endIdx = dayPair ? dayIndex(dayPair[2]) : -1;
-
-    if (dateStr && dateStr.trim()) {
-      var trimmedDate = dateStr.trim();
-      var rangeParts = trimmedDate.split(/\s*(?:-|–|—|to)\s*/i).filter(function(part) { return part; });
-      if (rangeParts.length >= 2) {
-        var startDate = parseOne(rangeParts[0]);
-        var endDate = parseOne(rangeParts[1]);
-        if (startDate && endDate) {
-          return {
-            timestamp: startDate.getTime(),
-            displayDate: pretty(startDate) + ' – ' + pretty(endDate)
-          };
-        }
-        return {
-          timestamp: now.getTime() + 86400000,
-          displayDate: trimmedDate
-        };
-      }
-
-      var single = parseOne(trimmedDate);
-      if (single) {
-        if (dayPair && endIdx !== -1) {
-          var span = (endIdx - single.getDay() + 7) % 7;
-          var endDateFromDay = new Date(single.getFullYear(), single.getMonth(), single.getDate() + span, 12, 0, 0);
-          return {
-            timestamp: single.getTime(),
-            displayDate: pretty(single) + ' – ' + pretty(endDateFromDay)
-          };
-        }
-        return {
-          timestamp: single.getTime(),
-          displayDate: pretty(single)
-        };
-      }
-
-      return {
-        timestamp: now.getTime() + 86400000,
-        displayDate: trimmedDate
-      };
-    }
-
-    if (dayPair && startIdx !== -1 && endIdx !== -1) {
-      var startDateFromDay = upcoming(startIdx, 8);
-      var daySpan = (endIdx - startIdx + 7) % 7;
-      if (daySpan === 0) daySpan = 7;
-      var endDateFromPair = new Date(startDateFromDay.getFullYear(), startDateFromDay.getMonth(), startDateFromDay.getDate() + daySpan, 12, 0, 0);
-      return {
-        timestamp: startDateFromDay.getTime(),
-        displayDate: pretty(startDateFromDay) + ' – ' + pretty(endDateFromPair)
-      };
-    }
-
-    var targetIdx = startIdx === -1 ? 3 : startIdx;
-    var computed = upcoming(targetIdx, 19);
-    return {
-      timestamp: computed.getTime(),
-      displayDate: pretty(computed)
-    };
-  }
-
-  function isValiantWeek() {
-    var now = new Date();
-    var dayOfWeek = now.getDay();
-    var hour = now.getHours();
-
-    if (dayOfWeek === 0 && hour < 6) return false;
-    if (dayOfWeek > 3) return false;
-    if (dayOfWeek === 3 && hour >= 21) return false;
-
-    var daysUntilWed = (3 - dayOfWeek + 7) % 7;
-    var targetWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilWed);
-    var dayOfMonth = targetWed.getDate();
-    var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
-
-    return (wedNumber === 1 || wedNumber === 3);
-  }
-
-  window.handleAdmin = function(response) {
-    var rows = extractTable(response);
-    var data = {};
-
-    rows.forEach(function(row) {
-      if (row[0]) {
-        var cleanKey = String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
-        data[cleanKey] = row[1] ? String(row[1]).trim() : '';
-      }
-    });
-
-    var wardName = data['wardname'] || data['ward'] || '';
-    if (wardName) {
-      document.getElementById('topWardPillText').textContent = wardName;
-      document.getElementById('wardTitle').textContent = wardName;
-      document.title = wardName + ' • Digital Bulletin';
-    }
-
-    var churchName = data['churchname'] || data['church'] || '';
-    if (churchName) {
-      document.getElementById('churchSub').textContent = churchName;
-    }
-
-    var broadcastUrl = data['broadcasturl'] || '';
-    var isVisible = (data['broadcastvisible'] || 'true').toLowerCase() !== 'false';
-    var container = document.getElementById('broadcastContainer');
-    var bLink = document.getElementById('broadcastLink');
-
-    if (broadcastUrl && isVisible) {
-      bLink.href = broadcastUrl;
-      container.style.display = 'flex';
-    } else if (!isVisible) {
-      container.style.display = 'none';
-    }
-
-    var broadcastSub = data['broadcastsubtitle'] || data['broadcastsub'] || '';
-    if (broadcastSub) {
-      document.getElementById('broadcastSub').textContent = broadcastSub;
-    }
-  };
-
-  window.handleGeneral = function(response) {
-    var rows = extractTable(response);
-    var data = {};
-
-    rows.forEach(function(row) {
-      if (row[0]) {
-        var cleanKey = String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
-        data[cleanKey] = row[1] ? String(row[1]).trim() : '';
-      }
-    });
-
-    if (data['date']) document.getElementById('bulletinDate').textContent = data['date'];
-    if (data['scripturequote']) document.getElementById('scriptureQuote').textContent = '“' + data['scripturequote'].replace(/^["“]|["”]$/g, '') + '”';
-    if (data['scripturecitation']) document.getElementById('scriptureCitation').textContent = data['scripturecitation'];
-
-    var imgUrl = data['weeklyimageurl'] || data['weeklyimage'] || data['imageurl'] || '';
-    if (imgUrl) {
-      var imgEl = document.getElementById('weeklyImg');
-      imgEl.src = imgUrl;
-      imgEl.style.display = 'block';
-      document.getElementById('sacredSvg').style.display = 'none';
-    }
-
-    var eventCard = document.getElementById('specialEventCard');
-    var eventTitle = data['specialeventtitle'] || data['specialevent'] || data['eventtitle'] || '';
-    var eventBadge = data['specialeventbadge'] || data['eventbadge'] || 'Special Presentation';
-    var eventDesc = data['specialeventdescription'] || data['specialeventdesc'] || data['eventdesc'] || '';
-
-    if (eventTitle) {
-      document.getElementById('specialEventTitle').textContent = eventTitle;
-      document.getElementById('specialEventBadge').textContent = eventBadge;
-      document.getElementById('specialEventDesc').textContent = eventDesc;
-      eventCard.style.display = 'block';
-    } else {
-      eventCard.style.display = 'none';
-    }
-  };
-
-  window.handleProgram = function(response) {
-    var rows = extractTable(response);
-    if (!rows || rows.length < 1) return;
-    var container = document.getElementById('programList');
-    container.innerHTML = '';
-
-    var startIdx = 0;
-    if (rows[0][0] && (rows[0][0].toLowerCase() === 'label' || rows[0][0].toLowerCase() === 'item')) {
-      startIdx = 1;
-    }
-
-    for (var i = startIdx; i < rows.length; i++) {
-      var row = rows[i];
-      var label = row[0] || '';
-      var details = row[1] || '';
-      var link = row[2] || '';
-
-      if (!label && !details) continue;
-
-      var itemDiv = document.createElement('div');
-      itemDiv.className = 'program-item';
-
-      if (link) {
-        itemDiv.innerHTML = '<div>' +
-          '<div class="program-label">' + label + '</div>' +
-          '<div style="font-size:12px;color:var(--text-muted);">' + details + '</div>' +
-          '</div>' +
-          '<a class="hymn-link" href="' + link + '" target="_blank" rel="noopener noreferrer">↗ Open</a>';
-      } else {
-        itemDiv.innerHTML = '<span class="program-label">' + label + '</span>' +
-          '<span class="program-val">' + details + '</span>';
-      }
-
-      container.appendChild(itemDiv);
-    }
-  };
-
-  window.handleSchedule = function(response) {
-    var rows = extractTable(response);
-    var sundayContainer = document.getElementById('sundayTimeline');
-    var youthContainer = document.getElementById('youthTimeline');
-
-    var sundayBlocks = [];
-    var sundayMap = {};
-    var customYouthBlocks = [];
-
-    var startIdx = 0;
-    if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][2] && rows[0][2].toLowerCase().indexOf('title') !== -1))) {
-      startIdx = 1;
-    }
-
-    for (var i = startIdx; i < rows.length; i++) {
-      var row = rows[i] || [];
-      var dayStr = (row[0] || '').trim();
-      var dateStr = (row[1] || '').trim();
-      var titleStr = (row[2] || '').trim();
-      var timeStr = (row[3] || '').trim();
-      var subText = (row[4] || '').trim();
-      var linkTxt = (row[5] || '').trim();
-      var linkUrl = (row[6] || '').trim();
-
-      if (!dayStr && !titleStr && !timeStr) continue;
-      if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
-
-      var isSunday = /^sun/i.test(dayStr);
-
-      if (isSunday) {
-        var sKey = timeStr + '___' + titleStr;
-        if (!sundayMap[sKey]) {
-          var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
-          sundayMap[sKey] = newBlock;
-          sundayBlocks.push(newBlock);
-        }
-        if (linkTxt && linkUrl) {
-          sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
-        }
-      } else {
-        var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
-        var isValiant = combined.indexOf('valiant') !== -1 || combined.indexOf('primary') !== -1;
-
-        if (isValiant && !isValiantWeek()) {
-          continue;
-        }
-
-        var dateInfo = resolveEventDate(dayStr, dateStr);
-
-        customYouthBlocks.push({
-          timestamp: dateInfo.timestamp,
-          dateDisplay: dateInfo.displayDate,
-          time: timeStr || '7:00 – 8:00 pm',
-          title: titleStr,
-          sub: subText,
-          linkText: linkTxt,
-          linkUrl: linkUrl
+      if (jsonObj.table.rows) {
+        jsonObj.table.rows.forEach(function(row) {
+          if (!row || !row.c) return;
+          result.push(row.c.map(function(cell) { return cellText(cell); }));
         });
       }
+      return result;
     }
-
-    customYouthBlocks.sort(function(a, b) {
-      return a.timestamp - b.timestamp;
-    });
-
-    if (sundayBlocks.length > 0 && sundayContainer) {
-      sundayContainer.innerHTML = '';
-      sundayBlocks.forEach(function(b) {
-        var slotDiv = document.createElement('div');
-        slotDiv.className = 'time-slot';
-
-        var linksHtml = '';
-        if (b.links.length > 0) {
-          linksHtml = '<div class="class-grid">';
-          b.links.forEach(function(l) {
-            linksHtml += '<a class="lesson-link-btn" href="' + l.url + '" target="_blank" rel="noopener noreferrer">' +
-              '<span>' + l.text + '</span><span>↗</span></a>';
+    function loadScript(sheetName, callbackName) {
+      var script = document.createElement('script');
+      script.crossOrigin = 'anonymous';
+      script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + Date.now();
+      script.onerror = function() { console.warn('Optional tab not loaded: ' + sheetName); };
+      document.body.appendChild(script);
+    }
+    function formatBadgeTime(rawTime) {
+      if (!rawTime) return '';
+      var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim().replace(/\s*[-–—]\s*/g, ' – ');
+      if (/all\s*day/i.test(clean)) return '<span class="time-range">All Day</span>';
+      var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
+      if (match) return '<span class="time-range">' + match[1].trim() + '</span><span class="time-meridiem">' + match[2].toLowerCase() + '</span>';
+      return '<span class="time-range">' + clean + '</span>';
+    }
+    function resolveEventDate(dayStr, dateStr) {
+      var now = new Date();
+      var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var fullMonths = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+      var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      function dayIndex(token) {
+        var t = (token || '').toLowerCase();
+        if (t.indexOf('sun') === 0) return 0;
+        if (t.indexOf('mon') === 0) return 1;
+        if (t.indexOf('tue') === 0) return 2;
+        if (t.indexOf('wed') === 0) return 3;
+        if (t.indexOf('thu') === 0) return 4;
+        if (t.indexOf('fri') === 0) return 5;
+        if (t.indexOf('sat') === 0) return 6;
+        return -1;
+      }
+      function pretty(d) { return dayNames[d.getDay()] + ', ' + monthNames[d.getMonth()] + ' ' + d.getDate(); }
+      function upcoming(targetIdx, hour) {
+        var diff = (targetIdx - now.getDay() + 7) % 7;
+        if (diff === 0 && now.getHours() >= 21) diff = 7;
+        return new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, hour || 12, 0, 0);
+      }
+      function parseOne(token) {
+        var trimmed = (token || '').trim();
+        if (!trimmed) return null;
+        var sheetDate = trimmed.match(/Date\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)\)/);
+        if (sheetDate) return new Date(parseInt(sheetDate[1], 10), parseInt(sheetDate[2], 10), parseInt(sheetDate[3], 10), 12, 0, 0);
+        var named = trimmed.match(/^([a-z]+)\s+(\d{1,2})(?:,?\s*(\d{4}))?/i);
+        if (named) {
+          var mIdx = fullMonths.indexOf(named[1].toLowerCase());
+          if (mIdx === -1) mIdx = fullMonths.findIndex(function(m) { return m.indexOf(named[1].toLowerCase()) === 0; });
+          if (mIdx !== -1) return new Date(named[3] ? parseInt(named[3], 10) : now.getFullYear(), mIdx, parseInt(named[2], 10), 12, 0, 0);
+        }
+        var slash = trimmed.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+        if (slash) {
+          var year2 = slash[3] ? parseInt(slash[3], 10) : now.getFullYear();
+          if (year2 < 100) year2 += 2000;
+          return new Date(year2, parseInt(slash[1], 10) - 1, parseInt(slash[2], 10), 12, 0, 0);
+        }
+        var parsed = Date.parse(trimmed);
+        if (!isNaN(parsed)) {
+          var d = new Date(parsed);
+          if (d.getFullYear() < 2020) d.setFullYear(now.getFullYear());
+          return d;
+        }
+        return null;
+      }
+      var dayPair = (dayStr || '').match(/([a-z]+)\s*(?:&|and)\s*([a-z]+)/i);
+      var startIdx = dayPair ? dayIndex(dayPair[1]) : dayIndex(dayStr);
+      var endIdx = dayPair ? dayIndex(dayPair[2]) : -1;
+      if (dateStr && dateStr.trim()) {
+        var trimmedDate = dateStr.trim();
+        var rangeParts = trimmedDate.split(/\s*(?:-|–|—|to)\s*/i).filter(function(part) { return part; });
+        if (rangeParts.length >= 2) {
+          var startDate = parseOne(rangeParts[0]);
+          var endDate = parseOne(rangeParts[1]);
+          if (startDate && endDate) return { timestamp: startDate.getTime(), displayDate: pretty(startDate) + ' – ' + pretty(endDate) };
+          return { timestamp: now.getTime() + 86400000, displayDate: trimmedDate };
+        }
+        var single = parseOne(trimmedDate);
+        if (single) {
+          if (dayPair && endIdx !== -1) {
+            var span = (endIdx - single.getDay() + 7) % 7;
+            var endDateFromDay = new Date(single.getFullYear(), single.getMonth(), single.getDate() + span, 12, 0, 0);
+            return { timestamp: single.getTime(), displayDate: pretty(single) + ' – ' + pretty(endDateFromDay) };
+          }
+          return { timestamp: single.getTime(), displayDate: pretty(single) };
+        }
+        return { timestamp: now.getTime() + 86400000, displayDate: trimmedDate };
+      }
+      if (dayPair && startIdx !== -1 && endIdx !== -1) {
+        var startDateFromDay = upcoming(startIdx, 8);
+        var daySpan = (endIdx - startIdx + 7) % 7;
+        if (daySpan === 0) daySpan = 7;
+        var endDateFromPair = new Date(startDateFromDay.getFullYear(), startDateFromDay.getMonth(), startDateFromDay.getDate() + daySpan, 12, 0, 0);
+        return { timestamp: startDateFromDay.getTime(), displayDate: pretty(startDateFromDay) + ' – ' + pretty(endDateFromPair) };
+      }
+      var targetIdx = startIdx === -1 ? 3 : startIdx;
+      var computed = upcoming(targetIdx, 19);
+      return { timestamp: computed.getTime(), displayDate: pretty(computed) };
+    }
+    function isValiantWeek() {
+      var now = new Date();
+      var dayOfWeek = now.getDay();
+      var hour = now.getHours();
+      if (dayOfWeek === 0 && hour < 6) return false;
+      if (dayOfWeek > 3) return false;
+      if (dayOfWeek === 3 && hour >= 21) return false;
+      var daysUntilWed = (3 - dayOfWeek + 7) % 7;
+      var targetWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilWed);
+      var wedNumber = Math.floor((targetWed.getDate() - 1) / 7) + 1;
+      return wedNumber === 1 || wedNumber === 3;
+    }
+    window.handleAdmin = function(response) {
+      var rows = extractTable(response), data = {};
+      rows.forEach(function(row) {
+        if (row[0]) data[String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '')] = row[1] ? String(row[1]).trim() : '';
+      });
+      var wardName = data.wardname || data.ward || '';
+      if (wardName) {
+        document.getElementById('topWardPillText').textContent = wardName;
+        document.getElementById('wardTitle').textContent = wardName;
+        document.title = wardName + ' • Digital Bulletin';
+      }
+      if (data.churchname || data.church) document.getElementById('churchSub').textContent = data.churchname || data.church;
+      var broadcastUrl = data.broadcasturl || '';
+      var isVisible = (data.broadcastvisible || 'true').toLowerCase() !== 'false';
+      var container = document.getElementById('broadcastContainer');
+      var bLink = document.getElementById('broadcastLink');
+      if (broadcastUrl && isVisible) { bLink.href = broadcastUrl; container.style.display = 'flex'; }
+      else if (!isVisible) container.style.display = 'none';
+      if (data.broadcastsubtitle || data.broadcastsub) document.getElementById('broadcastSub').textContent = data.broadcastsubtitle || data.broadcastsub;
+    };
+    window.handleGeneral = function(response) {
+      var rows = extractTable(response), data = {};
+      rows.forEach(function(row) {
+        if (row[0]) data[String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '')] = row[1] ? String(row[1]).trim() : '';
+      });
+      if (data.date) document.getElementById('bulletinDate').textContent = data.date;
+      if (data.scripturequote) document.getElementById('scriptureQuote').textContent = '“' + data.scripturequote.replace(/^["“]|["”]$/g, '') + '”';
+      if (data.scripturecitation) document.getElementById('scriptureCitation').textContent = data.scripturecitation;
+      var imgUrl = data.weeklyimageurl || data.weeklyimage || data.imageurl || '';
+      if (imgUrl) {
+        var imgEl = document.getElementById('weeklyImg');
+        imgEl.src = imgUrl;
+        imgEl.style.display = 'block';
+        document.getElementById('sacredSvg').style.display = 'none';
+      }
+      var eventCard = document.getElementById('specialEventCard');
+      var eventTitle = data.specialeventtitle || data.specialevent || data.eventtitle || '';
+      if (eventTitle) {
+        document.getElementById('specialEventTitle').textContent = eventTitle;
+        document.getElementById('specialEventBadge').textContent = data.specialeventbadge || data.eventbadge || 'Special Presentation';
+        document.getElementById('specialEventDesc').textContent = data.specialeventdescription || data.specialeventdesc || data.eventdesc || '';
+        eventCard.style.display = 'block';
+      } else eventCard.style.display = 'none';
+    };
+    window.handleProgram = function(response) {
+      var rows = extractTable(response);
+      if (!rows || rows.length < 1) return;
+      var container = document.getElementById('programList');
+      container.innerHTML = '';
+      var startIdx = (rows[0][0] && (rows[0][0].toLowerCase() === 'label' || rows[0][0].toLowerCase() === 'item')) ? 1 : 0;
+      for (var i = startIdx; i < rows.length; i++) {
+        var label = rows[i][0] || '', details = rows[i][1] || '', link = rows[i][2] || '';
+        if (!label && !details) continue;
+        var itemDiv = document.createElement('div');
+        itemDiv.className = 'program-item';
+        if (link) {
+          itemDiv.innerHTML = '<div><div class="program-label">' + label + '</div><div style="font-size:12px;color:var(--text-muted);">' + details + '</div></div><a class="hymn-link" href="' + link + '" target="_blank" rel="noopener noreferrer">↗ Open</a>';
+        } else {
+          itemDiv.innerHTML = '<span class="program-label">' + label + '</span><span class="program-val">' + details + '</span>';
+        }
+        container.appendChild(itemDiv);
+      }
+    };
+    window.handleSchedule = function(response) {
+      var rows = extractTable(response);
+      var sundayContainer = document.getElementById('sundayTimeline');
+      var youthContainer = document.getElementById('youthTimeline');
+      var sundayBlocks = [], sundayMap = {}, customYouthBlocks = [];
+      var startIdx = 0;
+      if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][2] && rows[0][2].toLowerCase().indexOf('title') !== -1))) startIdx = 1;
+      for (var i = startIdx; i < rows.length; i++) {
+        var row = rows[i] || [];
+        var dayStr = (row[0] || '').trim();
+        var dateStr = (row[1] || '').trim();
+        var titleStr = (row[2] || '').trim();
+        var timeStr = (row[3] || '').trim();
+        var subText = (row[4] || '').trim();
+        var linkTxt = (row[5] || '').trim();
+        var linkUrl = (row[6] || '').trim();
+        if (!dayStr && !titleStr && !timeStr) continue;
+        if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
+        if (/^sun/i.test(dayStr)) {
+          var sKey = timeStr + '___' + titleStr;
+          if (!sundayMap[sKey]) {
+            sundayMap[sKey] = { time: timeStr, title: titleStr, sub: subText, links: [] };
+            sundayBlocks.push(sundayMap[sKey]);
+          }
+          if (linkTxt && linkUrl) sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
+        } else {
+          var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
+          if (combined.indexOf('valiant') !== -1 && !isValiantWeek()) continue;
+          var dateInfo = resolveEventDate(dayStr, dateStr);
+          customYouthBlocks.push({
+            timestamp: dateInfo.timestamp,
+            dateDisplay: dateInfo.displayDate,
+            time: timeStr || '7:00 – 8:00 pm',
+            title: titleStr,
+            sub: subText,
+            linkText: linkTxt,
+            linkUrl: linkUrl
           });
-          linksHtml += '</div>';
         }
-
-        slotDiv.innerHTML = '<span class="time-badge">' + formatBadgeTime(b.time) + '</span>' +
-          '<div class="time-content">' +
-          '<div class="time-name">' + b.title + '</div>' +
-          (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') +
-          linksHtml +
-          '</div>';
-
-        sundayContainer.appendChild(slotDiv);
-      });
-    }
-
-    if (youthContainer) {
-      youthContainer.innerHTML = '';
-
-      if (customYouthBlocks.length > 0) {
+      }
+      customYouthBlocks.sort(function(a, b) { return a.timestamp - b.timestamp; });
+      if (sundayBlocks.length > 0 && sundayContainer) {
+        sundayContainer.innerHTML = '';
+        sundayBlocks.forEach(function(b) {
+          var linksHtml = '';
+          if (b.links.length > 0) {
+            linksHtml = '<div class="class-grid">';
+            b.links.forEach(function(l) {
+              linksHtml += '<a class="lesson-link-btn" href="' + l.url + '" target="_blank" rel="noopener noreferrer"><span>' + l.text + '</span><span>↗</span></a>';
+            });
+            linksHtml += '</div>';
+          }
+          var slotDiv = document.createElement('div');
+          slotDiv.className = 'time-slot';
+          slotDiv.innerHTML = '<span class="time-badge">' + formatBadgeTime(b.time) + '</span><div class="time-content"><div class="time-name">' + b.title + '</div>' + (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') + linksHtml + '</div>';
+          sundayContainer.appendChild(slotDiv);
+        });
+      }
+      if (youthContainer) {
+        youthContainer.innerHTML = '';
         customYouthBlocks.forEach(function(yb) {
           var slotDiv = document.createElement('div');
           slotDiv.className = 'time-slot';
-
-          slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
-            '<div class="time-content">' +
-            '<div class="time-name">' + yb.title + '</div>' +
-            (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') +
-            (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
-            (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
-            '</div>';
+          slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span><div class="time-content"><div class="time-name">' + yb.title + '</div>' + (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') + (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') + (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') + '</div>';
           youthContainer.appendChild(slotDiv);
         });
       }
-    }
-  };
-
-  window.handleDirectory = function(response) {
-    var rows = extractTable(response);
-    if (!rows || rows.length < 1) return;
-    var container = document.getElementById('directoryList');
-
-    var startIdx = 0;
-    if (rows[0][0] && (rows[0][0].toLowerCase() === 'role' || rows[0][0].toLowerCase() === 'position')) {
-      startIdx = 1;
-    }
-
-    if (rows.length > startIdx) {
+    };
+    window.handleDirectory = function(response) {
+      var rows = extractTable(response);
+      if (!rows || rows.length < 1) return;
+      var container = document.getElementById('directoryList');
+      var startIdx = (rows[0][0] && (rows[0][0].toLowerCase() === 'role' || rows[0][0].toLowerCase() === 'position')) ? 1 : 0;
+      if (rows.length > startIdx) container.innerHTML = '';
+      for (var i = startIdx; i < rows.length; i++) {
+        var role = rows[i][0] || '', name = rows[i][1] || '', phone = rows[i][2] || '', email = rows[i][3] ? rows[i][3].trim() : '';
+        if (!role && !name) continue;
+        var cleanPhone = phone.replace(/\D/g, '');
+        var buttons = '';
+        if (cleanPhone) {
+          buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>';
+          buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>';
+        }
+        if (email) {
+          buttons += '<a class="action-btn" href="mailto:' + email + '" title="Email ' + name + '" aria-label="Email"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></a>';
+        }
+        var rowDiv = document.createElement('div');
+        rowDiv.className = 'directory-row';
+        rowDiv.innerHTML = '<div><div class="dir-role">' + role + '</div><div class="dir-name">' + name + '</div></div>' + (buttons ? '<div class="dir-actions">' + buttons + '</div>' : '');
+        container.appendChild(rowDiv);
+      }
+    };
+    window.handleAnnouncements = function(response) {
+      var rows = extractTable(response);
+      if (!rows || rows.length < 1) return;
+      var container = document.getElementById('announcementsList');
       container.innerHTML = '';
-    }
-
-    for (var i = startIdx; i < rows.length; i++) {
-      var role = rows[i][0] || '';
-      var name = rows[i][1] || '';
-      var phone = rows[i][2] || '';
-      var email = rows[i][3] ? rows[i][3].trim() : '';
-
-      if (!role && !name) continue;
-
-      var cleanPhone = phone.replace(/\D/g, '');
-      var rowDiv = document.createElement('div');
-      rowDiv.className = 'directory-row';
-
-      var buttons = '';
-      if (cleanPhone) {
-        buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
-          '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
-          '</a>';
-        buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
-          '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
-          '</a>';
+      var startIdx = (rows[0][1] && (rows[0][1].toLowerCase() === 'title' || rows[0][0].toLowerCase() === 'tag')) ? 1 : 0;
+      for (var i = startIdx; i < rows.length; i++) {
+        var tag = rows[i][0] || '', title = rows[i][1] || '', body = rows[i][2] || '', actionText = rows[i][3] || '', actionUrl = rows[i][4] || '';
+        if (!title && !body) continue;
+        var html = '';
+        if (tag) html += '<div class="notice-tag">' + tag + '</div>';
+        if (title) html += '<div class="notice-title">' + title + '</div>';
+        if (body) html += '<div class="notice-body">' + body;
+        if (actionText && actionUrl) html += '<div class="signup-card"><span class="signup-text">' + actionText + '</span><a class="signup-btn" href="' + actionUrl + '" target="_blank" rel="noopener noreferrer">Open Link ↗</a></div>';
+        if (body) html += '</div>';
+        var noticeDiv = document.createElement('div');
+        noticeDiv.className = 'notice-item';
+        noticeDiv.innerHTML = html;
+        container.appendChild(noticeDiv);
       }
-      if (email) {
-        buttons += '<a class="action-btn" href="mailto:' + email + '" title="Email ' + name + '" aria-label="Email">' +
-          '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>' +
-          '</a>';
-      }
-
-      var actionsHtml = buttons ? '<div class="dir-actions">' + buttons + '</div>' : '';
-
-      rowDiv.innerHTML = '<div>' +
-        '<div class="dir-role">' + role + '</div>' +
-        '<div class="dir-name">' + name + '</div>' +
-        '</div>' + actionsHtml;
-
-      container.appendChild(rowDiv);
-    }
-  };
-
-  window.handleAnnouncements = function(response) {
-    var rows = extractTable(response);
-    if (!rows || rows.length < 1) return;
-    var container = document.getElementById('announcementsList');
-    container.innerHTML = '';
-
-    var startIdx = 0;
-    if (rows[0][1] && (rows[0][1].toLowerCase() === 'title' || rows[0][0].toLowerCase() === 'tag')) {
-      startIdx = 1;
-    }
-
-    for (var i = startIdx; i < rows.length; i++) {
-      var tag = rows[i][0] || '';
-      var title = rows[i][1] || '';
-      var body = rows[i][2] || '';
-      var actionText = rows[i][3] || '';
-      var actionUrl = rows[i][4] || '';
-
-      if (!title && !body) continue;
-
-      var noticeDiv = document.createElement('div');
-      noticeDiv.className = 'notice-item';
-
-      var html = '';
-      if (tag) html += '<div class="notice-tag">' + tag + '</div>';
-      if (title) html += '<div class="notice-title">' + title + '</div>';
-      if (body) html += '<div class="notice-body">' + body;
-
-      if (actionText && actionUrl) {
-        html += '<div class="signup-card">' +
-          '<span class="signup-text">' + actionText + '</span>' +
-          '<a class="signup-btn" href="' + actionUrl + '" target="_blank" rel="noopener noreferrer">Open Link ↗</a>' +
-          '</div>';
-      }
-
-      if (body) html += '</div>';
-
-      noticeDiv.innerHTML = html;
-      container.appendChild(noticeDiv);
-    }
-  };
-
-  document.addEventListener('DOMContentLoaded', function() {
-    loadScript('Admin', 'handleAdmin');
-    loadScript('General', 'handleGeneral');
-    loadScript('Program', 'handleProgram');
-    loadScript('Schedule', 'handleSchedule');
-    loadScript('Directory', 'handleDirectory');
-    loadScript('Announcements', 'handleAnnouncements');
-  });
-</script>
+    };
+    document.addEventListener('DOMContentLoaded', function() {
+      loadScript('Admin', 'handleAdmin');
+      loadScript('General', 'handleGeneral');
+      loadScript('Program', 'handleProgram');
+      loadScript('Schedule', 'handleSchedule');
+      loadScript('Directory', 'handleDirectory');
+      loadScript('Announcements', 'handleAnnouncements');
+    });
+  </script>
 </body>
 </html>
