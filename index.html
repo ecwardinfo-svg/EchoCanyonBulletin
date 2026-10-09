@@ -838,6 +838,8 @@
           if (!row || !row.c) return;
           var r = row.c.map(function(cell) {
             if (!cell || cell.v === null || cell.v === undefined) return '';
+            // If Google Sheets returns a formatted string (like "October 10"), prefer it
+            if (cell.f) return String(cell.f).trim();
             return String(cell.v).trim();
           });
           result.push(r);
@@ -877,44 +879,78 @@
       return '<span class="time-range">' + clean + '</span>';
     }
 
-    // Resolves both sorting timestamp and formatted date string for Column B
+    // Converts any input (Google Sheets Date(...) object string or plain text) into a clean display & timestamp
     function resolveEventDate(dayStr, dateStr) {
       var now = new Date();
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-      // 1. If date is provided in Column B (e.g. "October 10", "October 9-10")
       if (dateStr && dateStr.trim()) {
         var trimmed = dateStr.trim();
-        var match = trimmed.match(/^([a-z]+)\s*(\d{1,2})/i);
-        if (match) {
-          var mIdx = monthNames.findIndex(function(m) {
-            return m.toLowerCase() === match[1].substring(0, 3).toLowerCase();
+
+        // Check for Google Sheets raw date format: "Date(YYYY,M,D)"
+        var gMatch = trimmed.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)/i);
+        if (gMatch) {
+          var y = parseInt(gMatch[1], 10);
+          var m = parseInt(gMatch[2], 10); // 0-indexed month from Google
+          var d = parseInt(gMatch[3], 10);
+          var gDate = new Date(y, m, d, 12, 0, 0);
+          var gDayName = dayNames[gDate.getDay()];
+          return {
+            timestamp: gDate.getTime(),
+            displayDate: gDayName + ', ' + monthNames[m] + ' ' + d
+          };
+        }
+
+        // Check for "October 9-10" or "Oct 9-10" range
+        var rangeMatch = trimmed.match(/^([a-z]+)\s*(\d{1,2})\s*[-–—]\s*(\d{1,2})/i);
+        if (rangeMatch) {
+          var mIdxRange = monthNames.findIndex(function(mn) {
+            return mn.toLowerCase() === rangeMatch[1].substring(0, 3).toLowerCase();
           });
-          if (mIdx !== -1) {
-            var constructed = new Date(now.getFullYear(), mIdx, parseInt(match[2], 10), 12, 0, 0);
+          if (mIdxRange !== -1) {
+            var rDate = new Date(now.getFullYear(), mIdxRange, parseInt(rangeMatch[2], 10), 12, 0, 0);
             return {
-              timestamp: constructed.getTime(),
-              displayDate: trimmed
+              timestamp: rDate.getTime(),
+              displayDate: rangeMatch[1] + ' ' + rangeMatch[2] + '–' + rangeMatch[3]
             };
           }
         }
+
+        // Check for text like "October 10" or "Oct 10"
+        var match = trimmed.match(/^([a-z]+)\s*(\d{1,2})/i);
+        if (match) {
+          var mIdx = monthNames.findIndex(function(mn) {
+            return mn.toLowerCase() === match[1].substring(0, 3).toLowerCase();
+          });
+          if (mIdx !== -1) {
+            var constructed = new Date(now.getFullYear(), mIdx, parseInt(match[2], 10), 12, 0, 0);
+            var dayLabel = dayNames[constructed.getDay()];
+            return {
+              timestamp: constructed.getTime(),
+              displayDate: dayLabel + ', ' + monthNames[mIdx] + ' ' + match[2]
+            };
+          }
+        }
+
+        // Standard string fallback
         var parsed = Date.parse(trimmed);
         if (!isNaN(parsed)) {
-          var d = new Date(parsed);
-          if (d.getFullYear() < 2020) d.setFullYear(now.getFullYear());
+          var pDate = new Date(parsed);
+          if (pDate.getFullYear() < 2020) pDate.setFullYear(now.getFullYear());
           return {
-            timestamp: d.getTime(),
-            displayDate: trimmed
+            timestamp: pDate.getTime(),
+            displayDate: dayNames[pDate.getDay()] + ', ' + monthNames[pDate.getMonth()] + ' ' + pDate.getDate()
           };
         }
+
         return {
           timestamp: now.getTime() + 86400000,
           displayDate: trimmed
         };
       }
 
-      // 2. Default: Assume upcoming Wednesday (or weekday from Column A)
+      // Default: Assume upcoming Wednesday (or weekday from Column A)
       var targetIdx = 3; // Wednesday
       if (/mon/i.test(dayStr)) targetIdx = 1;
       else if (/tue/i.test(dayStr)) targetIdx = 2;
