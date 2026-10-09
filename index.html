@@ -326,7 +326,6 @@
       font-size: 13px;
       font-weight: 800;
       letter-spacing: 0.06em;
-      text-transform: uppercase;
       color: var(--text-muted);
       margin-bottom: 14px;
       display: flex;
@@ -396,7 +395,7 @@
       padding-top: 0;
     }
 
-    /* Clean Stacking Time Badge */
+    /* Left-side Badge (Strictly for Time) */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
@@ -435,6 +434,7 @@
       opacity: 0.85;
       text-transform: lowercase;
     }
+
     .time-content {
       flex: 1;
       min-width: 0;
@@ -731,25 +731,14 @@
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
         Sunday Services & Class Schedule
       </div>
-      <div id="sundayTimeline">
-        <div class="time-slot">
-          <span class="time-badge">
-            <span class="time-range">10:30 – 11:30</span>
-            <span class="time-meridiem">am</span>
-          </span>
-          <div class="time-content">
-            <div class="time-name">Sacrament Meeting</div>
-            <div class="time-sub">Chapel</div>
-          </div>
-        </div>
-      </div>
+      <div id="sundayTimeline"></div>
     </div>
 
     <!-- 2. Midweek & Youth Activities Schedule -->
     <div class="card" id="youthCard">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        Youth & Primary Midweek Schedule
+        <span id="youthHeaderLabel">Next Youth Activity • Wednesday, Oct 14</span>
       </div>
       <div id="youthTimeline"></div>
     </div>
@@ -857,12 +846,31 @@
       document.body.appendChild(script);
     }
 
-    // Resolves date into a sorting timestamp and a display string
+    // Formats time cleanly for the left-side badge
+    function formatBadgeTime(rawTime) {
+      if (!rawTime) return '';
+      var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
+      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
+
+      if (/all\s*day/i.test(clean)) {
+        return '<span class="time-range">All Day</span>';
+      }
+
+      var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
+      if (match) {
+        var nums = match[1].trim();
+        var meridiem = match[2].toLowerCase();
+        return '<span class="time-range">' + nums + '</span><span class="time-meridiem">' + meridiem + '</span>';
+      }
+      return '<span class="time-range">' + clean + '</span>';
+    }
+
+    // Resolves a calendar timestamp for sorting
     function resolveEventTimestamp(dayStr, dateStr) {
       var now = new Date();
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-      // 1. If explicit date exists in Column B (e.g., "October 9-10", "Oct 16", "10/16")
+      // 1. If explicit Date is provided in Column B
       if (dateStr && dateStr.trim()) {
         var trimmed = dateStr.trim();
         var parsed = Date.parse(trimmed);
@@ -883,8 +891,8 @@
         }
       }
 
-      // 2. Default: calculate upcoming weekday based on Column A
-      var targetIdx = 3; // Default Wednesday
+      // 2. Default: assume upcoming day from Column A (or Wednesday)
+      var targetIdx = 3;
       if (/mon/i.test(dayStr)) targetIdx = 1;
       else if (/tue/i.test(dayStr)) targetIdx = 2;
       else if (/wed/i.test(dayStr)) targetIdx = 3;
@@ -900,7 +908,33 @@
       return nextDate.getTime();
     }
 
-    // Shows Valiant only from Sunday 6:00 AM through Wednesday 9:00 PM leading up to a 1st or 3rd Wednesday
+    // Dynamic header: updates "Next Youth Activity • [Upcoming Date]"
+    function updateNextYouthHeader(targetDayIndex) {
+      var now = new Date();
+      var dayOfWeek = now.getDay();
+      var tIdx = (typeof targetDayIndex === 'number') ? targetDayIndex : 3;
+
+      var daysUntil = (tIdx - dayOfWeek + 7) % 7;
+      if (daysUntil === 0 && now.getHours() >= 21) daysUntil = 7;
+      else if (daysUntil === 0 && dayOfWeek !== tIdx) daysUntil = 7;
+
+      var nextDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntil);
+      var dayOfMonth = nextDate.getDate();
+      var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
+      var hasValiant = (tIdx === 3 && (wedNumber === 1 || wedNumber === 3));
+
+      var dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var formatted = dayNames[nextDate.getDay()] + ', ' + monthNames[nextDate.getMonth()] + ' ' + dayOfMonth;
+
+      var labelEl = document.getElementById('youthHeaderLabel');
+      if (labelEl) {
+        var titlePrefix = hasValiant ? 'Next Youth & Valiant Activity' : 'Next Youth Activity';
+        labelEl.textContent = titlePrefix + ' • ' + formatted;
+      }
+    }
+
+    // Active ONLY Sunday 6:00 AM through Wednesday 9:00 PM leading up to a 1st or 3rd Wednesday
     function isValiantWeek() {
       var now = new Date();
       var dayOfWeek = now.getDay();
@@ -1038,24 +1072,6 @@
       }
     };
 
-    function formatBadgeTime(rawTime) {
-      if (!rawTime) return '';
-      var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
-      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
-
-      if (/all\s*day/i.test(clean)) {
-        return '<span class="time-range">All Day</span>';
-      }
-
-      var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
-      if (match) {
-        var nums = match[1].trim();
-        var meridiem = match[2].toLowerCase();
-        return '<span class="time-range">' + nums + '</span><span class="time-meridiem">' + meridiem + '</span>';
-      }
-      return '<span class="time-range">' + clean + '</span>';
-    }
-
     // 3. Schedule Tab Handler
     // Maps your 7-column spreadsheet:
     // Col A (0) = Day
@@ -1073,9 +1089,9 @@
       var sundayBlocks = [];
       var sundayMap = {};
       var customYouthBlocks = [];
+      var detectedMidweekDay = null;
 
       var startIdx = 0;
-      // Skip Row 1 headers
       if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][2] && rows[0][2].toLowerCase().indexOf('title') !== -1))) {
         startIdx = 1;
       }
@@ -1090,14 +1106,14 @@
         var linkTxt = (row[5] || '').trim();
         var linkUrl = (row[6] || '').trim();
 
-        // Safely skip blank spacer rows
+        // Safely skip spacer rows
         if (!dayStr && !titleStr && !timeStr) continue;
         if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
 
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
-          // Sunday Services Block: Left Box = Time (Col D), Right Box = Title (Col C)
+          // Sunday Services Block: Time on Left (Col D), Title on Right (Col C)
           var sKey = timeStr + '___' + titleStr;
           if (!sundayMap[sKey]) {
             var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
@@ -1108,18 +1124,23 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Midweek Activity Block
+          // Detect midweek day for the card header
+          if (/tue/i.test(dayStr)) detectedMidweekDay = 2;
+          else if (/wed/i.test(dayStr) && detectedMidweekDay === null) detectedMidweekDay = 3;
+          else if (/thu/i.test(dayStr)) detectedMidweekDay = 4;
+
+          // Midweek Activity Row: check if Valiant
           var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
           var isValiant = combined.indexOf('valiant') !== -1 || combined.indexOf('primary') !== -1;
 
-          // If Valiant and NOT an active week/window, skip it!
+          // If Valiant and NOT active week/window: skip immediately!
           if (isValiant && !isValiantWeek()) {
             continue;
           }
 
           var sortTimestamp = resolveEventTimestamp(dayStr, dateStr);
 
-          // Build clean subtitle: if a date is listed, show it with notes
+          // Subtitle formatting: if Date is listed in Col B, prepend it to notes
           var displaySub = subText;
           if (dateStr && subText) {
             displaySub = dateStr + ' • ' + subText;
@@ -1138,10 +1159,13 @@
         }
       }
 
-      // Sort youth activities in chronological order
+      // Chronological sort based on Column B date (or fallback day)
       customYouthBlocks.sort(function(a, b) {
         return a.timestamp - b.timestamp;
       });
+
+      // Update Header with detected weekday
+      updateNextYouthHeader(detectedMidweekDay !== null ? detectedMidweekDay : 3);
 
       // Render Sunday Services
       if (sundayBlocks.length > 0 && sundayContainer) {
@@ -1180,6 +1204,7 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
 
+            // Clean time badge on left, title & notes on right
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
