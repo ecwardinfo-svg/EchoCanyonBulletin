@@ -732,7 +732,6 @@
         Sunday Services & Class Schedule
       </div>
       <div id="sundayTimeline">
-        <!-- Default Sunday Block Fallback -->
         <div class="time-slot">
           <span class="time-badge">
             <span class="time-range">10:30 – 11:30</span>
@@ -752,9 +751,7 @@
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
         Youth & Primary Midweek Schedule
       </div>
-      <div id="youthTimeline">
-        <!-- Loaded dynamically from Google Sheet 'Schedule' or smart calendar engine -->
-      </div>
+      <div id="youthTimeline"></div>
     </div>
 
     <!-- Get in Touch Section -->
@@ -852,7 +849,7 @@
     function loadScript(sheetName, callbackName) {
       var script = document.createElement('script');
       var cacheBuster = Date.now();
-      script.crossOrigin = 'anonymous'; // Strips logged-in Google cookies to fix iPad/Mac Safari
+      script.crossOrigin = 'anonymous';
       script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
       script.onerror = function() {
         console.warn('Optional tab not loaded: ' + sheetName);
@@ -860,44 +857,26 @@
       document.body.appendChild(script);
     }
 
-// Determines if Valiant activities should show:
-    // Becomes visible Sunday morning at 6:00 AM before a 1st or 3rd Wednesday,
-    // and hides Wednesday night at 9:00 PM (21:00).
+    // Shows only from Sunday 6:00 AM through Wednesday 9:00 PM (21:00)
+    // leading up to a 1st or 3rd Wednesday of the month.
     function isValiantWeek() {
       var now = new Date();
       var dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat
       var hour = now.getHours();
 
-      // Find the upcoming Wednesday of this current week/cycle
+      // Outside the Sunday 6:00 AM to Wednesday 9:00 PM window, stay hidden
+      if (dayOfWeek === 0 && hour < 6) return false;   // Sunday before 6am
+      if (dayOfWeek > 3) return false;                 // Thu, Fri, Sat
+      if (dayOfWeek === 3 && hour >= 21) return false; // Wed after 9pm
+
+      // Find this current week's Wednesday
       var daysUntilWed = (3 - dayOfWeek + 7) % 7;
-
-      // If today is Wednesday after 9:00 PM, or Thu/Fri/Sat, target next Wednesday
-      if (dayOfWeek === 3 && hour >= 21) {
-        daysUntilWed = 7;
-      } else if (dayOfWeek > 3) {
-        // Thu, Fri, Sat: this week's Wednesday is over
-        daysUntilWed = (3 - dayOfWeek + 7);
-      }
-
       var targetWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilWed);
       var dayOfMonth = targetWed.getDate();
       var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
-      var isActiveWed = (wedNumber === 1 || wedNumber === 3);
 
-      // If the targeted Wednesday is not a 1st or 3rd Wednesday, keep hidden
-      if (!isActiveWed) return false;
-
-      // If it IS an active Wednesday, only show starting Sunday at 6:00 AM
-      // (Days 0, 1, 2, 3 before 9pm are visible)
-      if (dayOfWeek === 0 && hour < 6) {
-        return false; // Sunday before 6am: keep hidden
-      }
-
-      if (dayOfWeek === 3 && hour >= 21) {
-        return false; // Wednesday after 9pm: hide immediately
-      }
-
-      return (dayOfWeek <= 3);
+      // Active only if it's the 1st or 3rd Wednesday of the month
+      return (wedNumber === 1 || wedNumber === 3);
     }
 
     // 0. Admin Tab Handler
@@ -1021,13 +1000,9 @@
 
     function formatBadgeTime(rawTime) {
       if (!rawTime) return '';
-      // Strip any day prefix (e.g. "Wed • ", "Wednesday • ")
       var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
-
-      // Clean dash with regular spaces so browser line wrapping doesn't get confused
       clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
 
-      // Extract numbers and am/pm
       var match = clean.match(/^(.*?)\s*(am|pm)\b/i);
       if (match) {
         var nums = match[1].trim();
@@ -1049,7 +1024,6 @@
       var customYouthBlocks = [];
 
       var startIdx = 0;
-      // Skip Row 1 if it contains headers like "Day", "Type / Title", "Time"
       if (rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][1] && rows[0][1].toLowerCase().indexOf('title') !== -1))) {
         startIdx = 1;
       }
@@ -1063,8 +1037,6 @@
         var linkUrl = (rows[i][5] || '').trim();
 
         if (!dayStr && !titleStr && !timeStr) continue;
-
-        // Skip accidental header repeats
         if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
 
         var cleanTime = timeStr.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
@@ -1073,7 +1045,6 @@
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
-          // Sunday Services Block
           var sKey = cleanTime + '___' + titleStr;
           if (!sundayMap[sKey]) {
             var newBlock = { time: cleanTime, title: titleStr, sub: subText, links: [] };
@@ -1084,7 +1055,12 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Midweek Activity Block (Time only on the left, Title on the right)
+          // Check if this row is a Valiant activity and if it should be hidden
+          var isValiantRow = /valiant/i.test(titleStr) || /valiant/i.test(subText);
+          if (isValiantRow && !isValiantWeek()) {
+            continue; // Skip during off-weeks or outside Sunday 6am - Wed 9pm
+          }
+
           customYouthBlocks.push({
             time: cleanTime,
             title: titleStr,
@@ -1132,7 +1108,6 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
 
-            // Clean time badge on the left (e.g. 7:00 – 8:00 / pm), group title & notes on the right
             slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
@@ -1142,7 +1117,7 @@
             youthContainer.appendChild(slotDiv);
           });
         } else {
-          // Default Automatic Smart Fallbacks
+          // Automatic Fallbacks
           var ywDiv = document.createElement('div');
           ywDiv.className = 'time-slot';
           ywDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime('7:00 – 8:00 pm') + '</span>' +
@@ -1214,7 +1189,7 @@
         var buttons = '';
         if (cleanPhone) {
           buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
-            '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
+            '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
             '</a>';
           buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
             '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
