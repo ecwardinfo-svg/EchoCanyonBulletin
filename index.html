@@ -396,7 +396,7 @@
       padding-top: 0;
     }
 
-    /* Left-side Badge */
+    /* Left-side Badge (Strictly for Time) */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
@@ -813,7 +813,7 @@
     }
 
     // ==========================================
-    // ROBUST SHEET ENGINE
+    // SHEET ENGINE
     // ==========================================
     var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
 
@@ -865,36 +865,60 @@
       document.body.appendChild(script);
     }
 
-    // Bulletproof time badge renderer
+    // BULLETPROOF TIME FORMATTER
     function formatBadgeTime(rawTime) {
       if (!rawTime) return '';
-      // Flatten all whitespace/linebreaks
-      var clean = String(rawTime).replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
-      clean = clean.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
-      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
 
-      if (/all\s*day/i.test(clean)) {
+      // Normalize unicode non-breaking spaces (\u00A0), multiple spaces, and carriage returns
+      var str = String(rawTime)
+        .replace(/[\u00A0\u2000-\u200B\r\n\t]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+      // Normalize dashes
+      str = str.replace(/[–—−]/g, '-');
+
+      if (/all\s*day/i.test(str)) {
         return '<span class="time-range">All Day</span>';
       }
 
-      // If range like "10:30 – 11:30 am" or "10:30 am – 11:30 am"
-      if (clean.indexOf('–') !== -1) {
-        var matchEnd = clean.match(/^(.*?)\s*(am|pm)\b$/i);
-        if (matchEnd) {
-          var timePart = matchEnd[1].trim();
-          var meridiemPart = matchEnd[2].toLowerCase();
-          return '<span class="time-range">' + timePart + '</span><span class="time-meridiem">' + meridiemPart + '</span>';
+      // Check for range e.g. "10:30 - 11:30 am", "11:35 - 12:00 pm", or "6:00am - 8:00pm"
+      if (str.indexOf('-') !== -1) {
+        var parts = str.split('-');
+        var left = parts[0].trim();
+        var right = parts.slice(1).join('-').trim();
+
+        // Extract meridiem (am/pm) if present at the end
+        var merMatch = right.match(/(am|pm)$/i);
+        var meridiem = merMatch ? merMatch[1].toLowerCase() : '';
+        if (meridiem) {
+          right = right.replace(new RegExp('\\s*' + meridiem + '$', 'i'), '').trim();
         }
-        return '<span class="time-range">' + clean + '</span>';
+
+        // Clean any leftover am/pm in left part too if written as "10:30am - 11:30am"
+        var leftMerMatch = left.match(/(am|pm)$/i);
+        if (leftMerMatch && !meridiem) {
+          meridiem = leftMerMatch[1].toLowerCase();
+        }
+        left = left.replace(/\s*(am|pm)$/i, '').trim();
+
+        var rangeText = left + ' – ' + right;
+        if (meridiem) {
+          return '<span class="time-range">' + rangeText + '</span><span class="time-meridiem">' + meridiem + '</span>';
+        }
+        return '<span class="time-range">' + rangeText + '</span>';
       }
 
-      // Single time e.g., "7:00 PM"
-      var matchSingle = clean.match(/^(.*?)\s*(am|pm)\b/i);
-      if (matchSingle) {
-        return '<span class="time-range">' + matchSingle[1].trim() + '</span><span class="time-meridiem">' + matchSingle[2].toLowerCase() + '</span>';
+      // Check for single time e.g. "7:00 PM"
+      var singleMerMatch = str.match(/(am|pm)$/i);
+      if (singleMerMatch) {
+        var sMer = singleMerMatch[1].toLowerCase();
+        var sTime = str.replace(new RegExp('\\s*' + sMer + '$', 'i'), '').trim();
+        return '<span class="time-range">' + sTime + '</span><span class="time-meridiem">' + sMer + '</span>';
       }
 
-      return '<span class="time-range">' + clean + '</span>';
+      // Fallback: render text cleanly
+      return '<span class="time-range">' + str + '</span>';
     }
 
     function resolveEventDate(dayStr, dateStr) {
@@ -1252,9 +1276,9 @@
             linksHtml += '</div>';
           }
 
-          var formattedTime = formatBadgeTime(b.time);
+          var badgeContent = formatBadgeTime(b.time);
 
-          slotDiv.innerHTML = '<span class="time-badge">' + (formattedTime || '<span class="time-range">' + b.time + '</span>') + '</span>' +
+          slotDiv.innerHTML = '<span class="time-badge">' + badgeContent + '</span>' +
             '<div class="time-content">' +
             '<div class="time-name">' + b.title + '</div>' +
             (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') +
@@ -1274,9 +1298,9 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
 
-            var formattedTime = formatBadgeTime(yb.time);
+            var badgeContent = formatBadgeTime(yb.time);
 
-            slotDiv.innerHTML = '<span class="time-badge accent-badge">' + (formattedTime || '<span class="time-range">' + yb.time + '</span>') + '</span>' +
+            slotDiv.innerHTML = '<span class="time-badge accent-badge">' + badgeContent + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
               (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') +
