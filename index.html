@@ -396,7 +396,7 @@
       padding-top: 0;
     }
 
-    /* Left-side Badge (Strictly for Time) */
+    /* Left-side Badge */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
@@ -448,7 +448,6 @@
       line-height: 1.35;
     }
 
-    /* Date line directly below the title */
     .time-date-line {
       font-size: 12px;
       font-weight: 600;
@@ -457,7 +456,6 @@
       line-height: 1.35;
     }
 
-    /* Subtitle / Notes directly below the date */
     .time-sub {
       font-size: 12px;
       color: var(--text-muted);
@@ -723,7 +721,7 @@
       <p class="primary-desc" id="specialEventDesc"></p>
     </div>
 
-    <!-- Dynamic Sacrament Program Agenda (Anchored Flush) -->
+    <!-- Dynamic Sacrament Program Agenda -->
     <div class="card section-anchor" id="program">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -800,8 +798,7 @@
       if (event) event.preventDefault();
       var el = document.getElementById(targetId);
       if (el) {
-        var yOffset = 0;
-        var y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        var y = el.getBoundingClientRect().top + window.pageYOffset;
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }
@@ -816,13 +813,14 @@
     }
 
     // ==========================================
-    // ROBUST SHEET ENGINE (HEADERS=0 & ANONYMOUS)
+    // ROBUST SHEET ENGINE
     // ==========================================
     var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
 
     function extractTable(jsonObj) {
       if (!jsonObj || !jsonObj.table) return [];
       var result = [];
+      var numCols = jsonObj.table.cols ? jsonObj.table.cols.length : 0;
 
       if (jsonObj.table.cols && jsonObj.table.cols.length > 0) {
         var colRow = jsonObj.table.cols.map(function(c) {
@@ -835,12 +833,20 @@
 
       if (jsonObj.table.rows) {
         jsonObj.table.rows.forEach(function(row) {
-          if (!row || !row.c) return;
-          var r = row.c.map(function(cell) {
-            if (!cell || cell.v === null || cell.v === undefined) return '';
-            if (cell.f) return String(cell.f).trim();
-            return String(cell.v).trim();
-          });
+          if (!row) return;
+          var r = [];
+          var cells = row.c || [];
+          var totalCells = Math.max(numCols, cells.length);
+          for (var i = 0; i < totalCells; i++) {
+            var cell = cells[i];
+            if (!cell || (cell.v === null && cell.f === null) || (cell.v === undefined && cell.f === undefined)) {
+              r.push('');
+            } else if (cell.f !== null && cell.f !== undefined) {
+              r.push(String(cell.f).trim());
+            } else {
+              r.push(String(cell.v).trim());
+            }
+          }
           result.push(r);
         });
       }
@@ -859,10 +865,10 @@
       document.body.appendChild(script);
     }
 
-    // Robust Time Badge Formatter (flattens in-cell newlines & formats properly)
+    // Bulletproof time badge renderer
     function formatBadgeTime(rawTime) {
       if (!rawTime) return '';
-      // Flatten all line breaks and multiple consecutive whitespaces
+      // Flatten all whitespace/linebreaks
       var clean = String(rawTime).replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
       clean = clean.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
       clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
@@ -871,24 +877,26 @@
         return '<span class="time-range">All Day</span>';
       }
 
-      // If it's a full range with hyphens (e.g., "10:30 – 11:30 am")
+      // If range like "10:30 – 11:30 am" or "10:30 am – 11:30 am"
       if (clean.indexOf('–') !== -1) {
         var matchEnd = clean.match(/^(.*?)\s*(am|pm)\b$/i);
         if (matchEnd) {
-          return '<span class="time-range">' + matchEnd[1].trim() + '</span><span class="time-meridiem">' + matchEnd[2].toLowerCase() + '</span>';
+          var timePart = matchEnd[1].trim();
+          var meridiemPart = matchEnd[2].toLowerCase();
+          return '<span class="time-range">' + timePart + '</span><span class="time-meridiem">' + meridiemPart + '</span>';
         }
         return '<span class="time-range">' + clean + '</span>';
       }
 
-      // Single time e.g., "7:00 PM" or "9:00 AM"
+      // Single time e.g., "7:00 PM"
       var matchSingle = clean.match(/^(.*?)\s*(am|pm)\b/i);
       if (matchSingle) {
         return '<span class="time-range">' + matchSingle[1].trim() + '</span><span class="time-meridiem">' + matchSingle[2].toLowerCase() + '</span>';
       }
+
       return '<span class="time-range">' + clean + '</span>';
     }
 
-    // Universal Date Resolver
     function resolveEventDate(dayStr, dateStr) {
       var now = new Date();
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -897,7 +905,6 @@
       if (dateStr && dateStr.trim()) {
         var s = dateStr.trim();
 
-        // 1. Slash ranges: "10/9/2026 - 10/10/2026" or "10/9 - 10/10"
         var slashRange = s.match(/(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?\s*[-–—\n]\s*(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?/);
         if (slashRange) {
           var sm1 = parseInt(slashRange[1], 10);
@@ -918,7 +925,6 @@
           }
         }
 
-        // 2. Month text ranges: "October 9-10", "Oct 9-10", or "Oct 9 - Oct 10"
         var textRange = s.match(/([a-z]+)\s*(\d{1,2})(?:st|nd|rd|th)?\s*[-–—\n]\s*(?:([a-z]+)\s*)?(\d{1,2})(?:st|nd|rd|th)?/i);
         if (textRange) {
           var mo1Str = textRange[1].substring(0, 3).toLowerCase();
@@ -942,7 +948,6 @@
           }
         }
 
-        // 3. Google Sheets raw Date(YYYY, M, D)
         var gMatch = s.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)/i);
         if (gMatch) {
           var gy = parseInt(gMatch[1], 10);
@@ -965,7 +970,6 @@
           };
         }
 
-        // 4. Single named date: "October 10th", "October 10", "Oct 10th"
         var singleNamed = s.match(/^([a-z]+)\s*(\d{1,2})(?:st|nd|rd|th)?$/i);
         if (singleNamed) {
           var snMoStr = singleNamed[1].substring(0, 3).toLowerCase();
@@ -981,7 +985,6 @@
           }
         }
 
-        // 5. Single numeric slash date: "10/10/2026" or "10/10"
         var singleSlash = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
         if (singleSlash) {
           var nm = parseInt(singleSlash[1], 10);
@@ -1002,7 +1005,6 @@
         };
       }
 
-      // Default: If date column was blank, assume upcoming day from Column A (or Wednesday)
       var targetIdx = 3;
       if (/mon/i.test(dayStr)) targetIdx = 1;
       else if (/tue/i.test(dayStr)) targetIdx = 2;
@@ -1022,13 +1024,11 @@
       };
     }
 
-    // Active ONLY Sunday 6:00 AM through Wednesday 9:00 PM leading up to a 1st or 3rd Wednesday
     function isValiantWeek() {
       var now = new Date();
       var dayOfWeek = now.getDay();
       var hour = now.getHours();
 
-      // Outside Sunday 6:00 AM to Wednesday 9:00 PM: hide
       if (dayOfWeek === 0 && hour < 6) return false;
       if (dayOfWeek > 3) return false;
       if (dayOfWeek === 3 && hour >= 21) return false;
@@ -1177,6 +1177,8 @@
 
       for (var i = startIdx; i < rows.length; i++) {
         var row = rows[i] || [];
+
+        // Flexible mapping: handles empty Column B without breaking Column D (Time)
         var dayStr = (row[0] || '').trim();
         var dateStr = (row[1] || '').trim();
         var titleStr = (row[2] || '').trim();
@@ -1185,7 +1187,13 @@
         var linkTxt = (row[5] || '').trim();
         var linkUrl = (row[6] || '').trim();
 
-        // Safely skip blank spacer rows
+        // Edge case: if Column B was completely omitted in Sheets, shift dynamically
+        if (!timeStr && /^\d{1,2}[:.]\d{2}/.test(titleStr)) {
+          timeStr = titleStr;
+          titleStr = dateStr;
+          dateStr = '';
+        }
+
         if (!dayStr && !titleStr && !timeStr) continue;
         if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
 
@@ -1223,7 +1231,6 @@
         }
       }
 
-      // Sort youth & ward activities in chronological order based on date
       customYouthBlocks.sort(function(a, b) {
         return a.timestamp - b.timestamp;
       });
@@ -1245,10 +1252,9 @@
             linksHtml += '</div>';
           }
 
-          var badgeContent = formatBadgeTime(b.time);
-          var badgeHtml = badgeContent ? '<span class="time-badge">' + badgeContent + '</span>' : '';
+          var formattedTime = formatBadgeTime(b.time);
 
-          slotDiv.innerHTML = badgeHtml +
+          slotDiv.innerHTML = '<span class="time-badge">' + (formattedTime || '<span class="time-range">' + b.time + '</span>') + '</span>' +
             '<div class="time-content">' +
             '<div class="time-name">' + b.title + '</div>' +
             (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') +
@@ -1268,10 +1274,9 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
 
-            var badgeContent = formatBadgeTime(yb.time);
-            var badgeHtml = badgeContent ? '<span class="time-badge accent-badge">' + badgeContent + '</span>' : '';
+            var formattedTime = formatBadgeTime(yb.time);
 
-            slotDiv.innerHTML = badgeHtml +
+            slotDiv.innerHTML = '<span class="time-badge accent-badge">' + (formattedTime || '<span class="time-range">' + yb.time + '</span>') + '</span>' +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
               (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') +
