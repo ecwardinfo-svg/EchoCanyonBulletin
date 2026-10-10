@@ -859,28 +859,28 @@
       document.body.appendChild(script);
     }
 
-    // Left badge: cleanly formats times like "6am-8pm", "11:35 - 12:00 pm", or "All Day"
+    // Robust Time Badge Formatter (flattens in-cell newlines & formats properly)
     function formatBadgeTime(rawTime) {
       if (!rawTime) return '';
-      var clean = rawTime.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
+      // Flatten all line breaks and multiple consecutive whitespaces
+      var clean = String(rawTime).replace(/[\r\n]+/g, ' ').replace(/\s+/g, ' ').trim();
+      clean = clean.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
       clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
 
       if (/all\s*day/i.test(clean)) {
         return '<span class="time-range">All Day</span>';
       }
 
-      // If it's a full range with hyphens (e.g., 6am – 8pm or 10:30 – 11:30 am)
+      // If it's a full range with hyphens (e.g., "10:30 – 11:30 am")
       if (clean.indexOf('–') !== -1) {
-        // e.g. "10:30 – 11:30 am" -> nums on top, am on bottom
         var matchEnd = clean.match(/^(.*?)\s*(am|pm)\b$/i);
         if (matchEnd) {
           return '<span class="time-range">' + matchEnd[1].trim() + '</span><span class="time-meridiem">' + matchEnd[2].toLowerCase() + '</span>';
         }
-        // e.g. "6am – 8pm" -> preserve the full range cleanly
         return '<span class="time-range">' + clean + '</span>';
       }
 
-      // Single time e.g., 7:00 PM or 9:00 AM
+      // Single time e.g., "7:00 PM" or "9:00 AM"
       var matchSingle = clean.match(/^(.*?)\s*(am|pm)\b/i);
       if (matchSingle) {
         return '<span class="time-range">' + matchSingle[1].trim() + '</span><span class="time-meridiem">' + matchSingle[2].toLowerCase() + '</span>';
@@ -1161,14 +1161,6 @@
     };
 
     // 3. Schedule Tab Handler
-    // Maps your 7-column spreadsheet:
-    // Col A (0) = Day
-    // Col B (1) = Date
-    // Col C (2) = Type / Title
-    // Col D (3) = Time
-    // Col E (4) = Subtitle / Notes
-    // Col F (5) = Link Text
-    // Col G (6) = Link URL
     window.handleSchedule = function(response) {
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
@@ -1200,7 +1192,6 @@
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
-          // Sunday Services Block: Time on Left (Col D), Title on Right (Col C)
           var sKey = timeStr + '___' + titleStr;
           if (!sundayMap[sKey]) {
             var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
@@ -1211,11 +1202,9 @@
             sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
           }
         } else {
-          // Check specifically if this row is for Valiant
           var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
           var isValiant = combined.indexOf('valiant') !== -1;
 
-          // If Valiant and NOT active week/window: skip immediately!
           if (isValiant && !isValiantWeek()) {
             continue;
           }
@@ -1256,7 +1245,10 @@
             linksHtml += '</div>';
           }
 
-          slotDiv.innerHTML = '<span class="time-badge">' + formatBadgeTime(b.time) + '</span>' +
+          var badgeContent = formatBadgeTime(b.time);
+          var badgeHtml = badgeContent ? '<span class="time-badge">' + badgeContent + '</span>' : '';
+
+          slotDiv.innerHTML = badgeHtml +
             '<div class="time-content">' +
             '<div class="time-name">' + b.title + '</div>' +
             (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') +
@@ -1276,8 +1268,10 @@
             var slotDiv = document.createElement('div');
             slotDiv.className = 'time-slot';
 
-            // Clean Time on Left; Bold Title, Date line, Notes line on Right
-            slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
+            var badgeContent = formatBadgeTime(yb.time);
+            var badgeHtml = badgeContent ? '<span class="time-badge accent-badge">' + badgeContent + '</span>' : '';
+
+            slotDiv.innerHTML = badgeHtml +
               '<div class="time-content">' +
               '<div class="time-name">' + yb.title + '</div>' +
               (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') +
