@@ -198,20 +198,14 @@
     window.handleGeneral = function(response) {
       var data = mapRows(response).data;
       function getUpcomingSundayStr() {
-  var now = new Date();
-  var daysUntilSunday = (7 - now.getDay()) % 7;
-  // If it's already Sunday past 8 PM, look forward to next Sunday:
-  if (now.getDay() === 0 && now.getHours() >= 20) {
-    daysUntilSunday = 7;
-  }
-  var sun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday);
-  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-  return 'Sunday, ' + months[sun.getMonth()] + ' ' + sun.getDate() + ', ' + sun.getFullYear();
-}
-
-// Uses sheet value if entered, otherwise calculates next Sunday automatically:
-document.getElementById('bulletinDate').textContent = data.date || getUpcomingSundayStr();
-
+        var now = new Date();
+        var daysUntilSunday = (7 - now.getDay()) % 7;
+        if (now.getDay() === 0 && now.getHours() >= 20) daysUntilSunday = 7;
+        var sun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday);
+        var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+        return 'Sunday, ' + months[sun.getMonth()] + ' ' + sun.getDate() + ', ' + sun.getFullYear();
+      }
+      document.getElementById('bulletinDate').textContent = data.date || getUpcomingSundayStr();
       if (data.scripturequote) document.getElementById('scriptureQuote').textContent = '“' + data.scripturequote.replace(/^["“]|["”]$/g,'') + '”';
       if (data.scripturecitation) document.getElementById('scriptureCitation').textContent = data.scripturecitation;
       var img = data.weeklyimageurl || data.weeklyimage || data.imageurl || '';
@@ -241,7 +235,17 @@ document.getElementById('bulletinDate').textContent = data.date || getUpcomingSu
         if (!day && !title && !time) continue;
         if (/^sun/i.test(day)) {
           var key = time+'___'+title;
-          if (!map[key]) { map[key] = { time:time, title:title, sub:sub, links:[] }; sunday.push(map[key]); }
+          // Fallback times when the sheet Time cell comes back empty for Sunday rows
+          var defaultTimes = {
+            'sacrament meeting': '10:30 – 11:30 am',
+            'sunday school': '11:35 – 12:00 pm',
+            'primary': '11:35 – 12:30 pm',
+            'priesthood & relief society': '12:05 – 12:30 pm',
+            'young women\'s & young men\'s': '12:05 – 12:30 pm',
+            'young women\'s and young men\'s': '12:05 – 12:30 pm'
+          };
+          var displayTime = time || defaultTimes[title.toLowerCase()] || '';
+          if (!map[key]) { map[key] = { time: displayTime, title:title, sub:sub, links:[] }; sunday.push(map[key]); }
           if (lt && lu) map[key].links.push({ text:lt, url:lu });
         } else {
           if ((day+' '+title+' '+sub).toLowerCase().indexOf('valiant') !== -1 && !isValiantWeek()) continue;
