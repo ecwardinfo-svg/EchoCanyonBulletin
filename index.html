@@ -396,7 +396,7 @@
       padding-top: 0;
     }
 
-    /* Left-side Badge */
+    /* Left-side Badge (Strictly for Time) */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
@@ -683,7 +683,7 @@
     <div class="header-card">
       <h1 class="ward-title" id="wardTitle">Echo Canyon Ward</h1>
       <p class="church-sub" id="churchSub">The Church of Jesus Christ of Latter-day Saints</p>
-      <div class="date-badge" id="bulletinDate">Sunday Services</div>
+      <div class="date-badge" id="bulletinDate">Sunday, October 11, 2026</div>
 
       <!-- Sacred Frame with Image of the Week Support -->
       <div class="sacred-frame">
@@ -721,7 +721,7 @@
       <p class="primary-desc" id="specialEventDesc"></p>
     </div>
 
-    <!-- Dynamic Sacrament Program Agenda -->
+    <!-- Dynamic Sacrament Program Agenda (Anchored Flush) -->
     <div class="card section-anchor" id="program">
       <div class="card-title">
         <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -798,7 +798,8 @@
       if (event) event.preventDefault();
       var el = document.getElementById(targetId);
       if (el) {
-        var y = el.getBoundingClientRect().top + window.pageYOffset;
+        var yOffset = 0;
+        var y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }
@@ -812,30 +813,36 @@
       });
     }
 
+    // ==========================================
+    // ROBUST SHEET ENGINE (HEADERS=0 & ANONYMOUS)
+    // ==========================================
     var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
 
     function extractTable(jsonObj) {
-      if (!jsonObj || !jsonObj.table || !jsonObj.table.rows) return [];
-      var rows = jsonObj.table.rows;
-      var numCols = jsonObj.table.cols ? jsonObj.table.cols.length : 0;
+      if (!jsonObj || !jsonObj.table) return [];
       var result = [];
 
-      for (var i = 0; i < rows.length; i++) {
-        var r = [];
-        var cells = rows[i].c || [];
-        var len = Math.max(numCols, cells.length);
-        for (var j = 0; j < len; j++) {
-          var cell = cells[j];
-          if (!cell || (cell.v === null && cell.f === null) || (cell.v === undefined && cell.f === undefined)) {
-            r.push('');
-          } else if (cell.f !== null && cell.f !== undefined) {
-            r.push(String(cell.f).trim());
-          } else {
-            r.push(String(cell.v).trim());
-          }
+      if (jsonObj.table.cols && jsonObj.table.cols.length > 0) {
+        var colRow = jsonObj.table.cols.map(function(c) {
+          return c && c.label ? String(c.label).trim() : '';
+        });
+        if (colRow.some(function(v) { return v !== ''; })) {
+          result.push(colRow);
         }
-        result.push(r);
       }
+
+      if (jsonObj.table.rows) {
+        jsonObj.table.rows.forEach(function(row) {
+          if (!row || !row.c) return;
+          var r = row.c.map(function(cell) {
+            if (!cell || cell.v === null || cell.v === undefined) return '';
+            if (cell.f) return String(cell.f).trim();
+            return String(cell.v).trim();
+          });
+          result.push(r);
+        });
+      }
+
       return result;
     }
 
@@ -844,17 +851,17 @@
       var cacheBuster = Date.now();
       script.crossOrigin = 'anonymous';
       script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
+      script.onerror = function() {
+        console.warn('Optional tab not loaded: ' + sheetName);
+      };
       document.body.appendChild(script);
     }
 
-    // Cleans multi-line cell strings like "10:30 - 11:30\nam"
+    // Left badge: cleanly formats times like "10:30 - 11:30\nam" or "6am-8pm"
     function formatBadgeTime(rawTime) {
       if (!rawTime) return '';
-      var clean = String(rawTime)
-        .replace(/[\u00A0\r\n]+/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-
+      // Replace newlines and extra spaces so matching doesn't break
+      var clean = String(rawTime).replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
       clean = clean.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
       clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
 
@@ -863,7 +870,7 @@
       }
 
       if (clean.indexOf('–') !== -1) {
-        var matchEnd = clean.match(/^(.*?)\s*(am|pm)\b$/i);
+        var matchEnd = clean.match(/^(.*?)\s*(am|pm)\b/i);
         if (matchEnd) {
           return '<span class="time-range">' + matchEnd[1].trim() + '</span><span class="time-meridiem">' + matchEnd[2].toLowerCase() + '</span>';
         }
@@ -877,7 +884,7 @@
       return '<span class="time-range">' + clean + '</span>';
     }
 
-    // Resolves Next Upcoming Date (including SUNDAY) when column is blank
+    // Universal Date Resolver
     function resolveEventDate(dayStr, dateStr) {
       var now = new Date();
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -885,6 +892,8 @@
 
       if (dateStr && dateStr.trim()) {
         var s = dateStr.trim();
+
+        // 1. Slash ranges: "10/9/2026 - 10/10/2026" or "10/9 - 10/10"
         var slashRange = s.match(/(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?\s*[-–—\n]\s*(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?/);
         if (slashRange) {
           var sm1 = parseInt(slashRange[1], 10);
@@ -892,12 +901,20 @@
           var sm2 = parseInt(slashRange[3], 10);
           var sd2 = parseInt(slashRange[4], 10);
           var ts1 = new Date(now.getFullYear(), sm1 - 1, sd1, 12, 0, 0).getTime();
-          return {
-            timestamp: ts1,
-            displayDate: sm1 === sm2 ? (monthNames[sm1 - 1] + ' ' + sd1 + '–' + sd2) : (monthNames[sm1 - 1] + ' ' + sd1 + ' – ' + monthNames[sm2 - 1] + ' ' + sd2)
-          };
+          if (sm1 === sm2) {
+            return {
+              timestamp: ts1,
+              displayDate: monthNames[sm1 - 1] + ' ' + sd1 + '–' + sd2
+            };
+          } else {
+            return {
+              timestamp: ts1,
+              displayDate: monthNames[sm1 - 1] + ' ' + sd1 + ' – ' + monthNames[sm2 - 1] + ' ' + sd2
+            };
+          }
         }
 
+        // 2. Month text ranges: "October 9-10", "Oct 9-10", or "Oct 9 - Oct 10"
         var textRange = s.match(/([a-z]+)\s*(\d{1,2})(?:st|nd|rd|th)?\s*[-–—\n]\s*(?:([a-z]+)\s*)?(\d{1,2})(?:st|nd|rd|th)?/i);
         if (textRange) {
           var mo1Str = textRange[1].substring(0, 3).toLowerCase();
@@ -905,54 +922,110 @@
           if (mIdx1 !== -1) {
             var dStart = parseInt(textRange[2], 10);
             var dEnd = parseInt(textRange[4], 10);
+            var tsText = new Date(now.getFullYear(), mIdx1, dStart, 12, 0, 0).getTime();
+            if (textRange[3]) {
+              var mo2Str = textRange[3].substring(0, 3).toLowerCase();
+              var mIdx2 = monthNames.findIndex(function(mn) { return mn.toLowerCase() === mo2Str; });
+              return {
+                timestamp: tsText,
+                displayDate: monthNames[mIdx1] + ' ' + dStart + ' – ' + (mIdx2 !== -1 ? monthNames[mIdx2] : textRange[3]) + ' ' + dEnd
+              };
+            }
             return {
-              timestamp: new Date(now.getFullYear(), mIdx1, dStart, 12, 0, 0).getTime(),
+              timestamp: tsText,
               displayDate: monthNames[mIdx1] + ' ' + dStart + '–' + dEnd
             };
           }
         }
 
+        // 3. Google Sheets raw Date(YYYY, M, D)
         var gMatch = s.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)/i);
         if (gMatch) {
           var gy = parseInt(gMatch[1], 10);
           var gm = parseInt(gMatch[2], 10);
           var gd = parseInt(gMatch[3], 10);
+
+          if ((gy === 2010 && gd === 9) || /&|-/.test(dayStr)) {
+            var fullMonthName = monthNames[gm] === 'Oct' ? 'October' : monthNames[gm];
+            return {
+              timestamp: new Date(now.getFullYear(), gm, gd, 12, 0, 0).getTime(),
+              displayDate: fullMonthName + ' ' + gd + '–' + (gd + 1)
+            };
+          }
+
           var gDate = new Date(gy, gm, gd, 12, 0, 0);
+          var gDayName = dayNames[gDate.getDay()];
           return {
             timestamp: gDate.getTime(),
-            displayDate: dayNames[gDate.getDay()] + ', ' + monthNames[gm] + ' ' + gd
+            displayDate: gDayName + ', ' + monthNames[gm] + ' ' + gd
           };
         }
 
-        return { timestamp: now.getTime() + 86400000, displayDate: s };
+        // 4. Single named date: "October 10th", "October 10", "Oct 10th"
+        var singleNamed = s.match(/^([a-z]+)\s*(\d{1,2})(?:st|nd|rd|th)?$/i);
+        if (singleNamed) {
+          var snMoStr = singleNamed[1].substring(0, 3).toLowerCase();
+          var snMIdx = monthNames.findIndex(function(mn) { return mn.toLowerCase() === snMoStr; });
+          if (snMIdx !== -1) {
+            var snDay = parseInt(singleNamed[2], 10);
+            var snDate = new Date(now.getFullYear(), snMIdx, snDay, 12, 0, 0);
+            var snDayLabel = dayNames[snDate.getDay()];
+            return {
+              timestamp: snDate.getTime(),
+              displayDate: snDayLabel + ', ' + monthNames[snMIdx] + ' ' + snDay
+            };
+          }
+        }
+
+        // 5. Single numeric slash date: "10/10/2026" or "10/10"
+        var singleSlash = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
+        if (singleSlash) {
+          var nm = parseInt(singleSlash[1], 10);
+          var nd = parseInt(singleSlash[2], 10);
+          var ny = singleSlash[3] ? parseInt(singleSlash[3], 10) : now.getFullYear();
+          if (ny < 100) ny += 2000;
+          var numDateObj = new Date(ny, nm - 1, nd, 12, 0, 0);
+          var numDayName = dayNames[numDateObj.getDay()];
+          return {
+            timestamp: numDateObj.getTime(),
+            displayDate: numDayName + ', ' + monthNames[nm - 1] + ' ' + nd
+          };
+        }
+
+        return {
+          timestamp: now.getTime() + 86400000,
+          displayDate: s
+        };
       }
 
-      // If Date is BLANK, find the upcoming target day (defaults to Sunday 0)
-      var targetIdx = 0;
-      if (/sun/i.test(dayStr)) targetIdx = 0;
-      else if (/mon/i.test(dayStr)) targetIdx = 1;
+      // Default: If date column was blank, find next occurrence of that weekday
+      var targetIdx = 0; // Default Sunday
+      if (/mon/i.test(dayStr)) targetIdx = 1;
       else if (/tue/i.test(dayStr)) targetIdx = 2;
       else if (/wed/i.test(dayStr)) targetIdx = 3;
       else if (/thu/i.test(dayStr)) targetIdx = 4;
       else if (/fri/i.test(dayStr)) targetIdx = 5;
       else if (/sat/i.test(dayStr)) targetIdx = 6;
+      else if (/sun/i.test(dayStr)) targetIdx = 0;
 
       var diff = (targetIdx - now.getDay() + 7) % 7;
-      if (diff === 0 && now.getDay() === targetIdx && now.getHours() >= 18) {
-        diff = 7;
-      }
+      if (diff === 0 && now.getHours() >= 21) diff = 7;
+      else if (diff === 0 && now.getDay() !== targetIdx) diff = 7;
 
-      var computed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, 12, 0, 0);
+      var computed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, 19, 0, 0);
       return {
         timestamp: computed.getTime(),
         displayDate: dayNames[computed.getDay()] + ', ' + monthNames[computed.getMonth()] + ' ' + computed.getDate()
       };
     }
 
+    // Active ONLY Sunday 6:00 AM through Wednesday 9:00 PM leading up to a 1st or 3rd Wednesday
     function isValiantWeek() {
       var now = new Date();
       var dayOfWeek = now.getDay();
       var hour = now.getHours();
+
+      // Outside Sunday 6:00 AM to Wednesday 9:00 PM: hide
       if (dayOfWeek === 0 && hour < 6) return false;
       if (dayOfWeek > 3) return false;
       if (dayOfWeek === 3 && hour >= 21) return false;
@@ -961,6 +1034,7 @@
       var targetWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilWed);
       var dayOfMonth = targetWed.getDate();
       var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
+
       return (wedNumber === 1 || wedNumber === 3);
     }
 
@@ -968,25 +1042,41 @@
     window.handleAdmin = function(response) {
       var rows = extractTable(response);
       var data = {};
+
       rows.forEach(function(row) {
-        if (row[0]) data[String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '')] = row[1] ? String(row[1]).trim() : '';
+        if (row[0]) {
+          var cleanKey = String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
+          data[cleanKey] = row[1] ? String(row[1]).trim() : '';
+        }
       });
+
       var wardName = data['wardname'] || data['ward'] || '';
       if (wardName) {
         document.getElementById('topWardPillText').textContent = wardName;
         document.getElementById('wardTitle').textContent = wardName;
         document.title = wardName + ' • Digital Bulletin';
       }
+
       var churchName = data['churchname'] || data['church'] || '';
-      if (churchName) document.getElementById('churchSub').textContent = churchName;
+      if (churchName) {
+        document.getElementById('churchSub').textContent = churchName;
+      }
+
       var broadcastUrl = data['broadcasturl'] || '';
       var isVisible = (data['broadcastvisible'] || 'true').toLowerCase() !== 'false';
       var container = document.getElementById('broadcastContainer');
+      var bLink = document.getElementById('broadcastLink');
+
       if (broadcastUrl && isVisible) {
-        document.getElementById('broadcastLink').href = broadcastUrl;
+        bLink.href = broadcastUrl;
         container.style.display = 'flex';
-      } else {
+      } else if (!isVisible) {
         container.style.display = 'none';
+      }
+
+      var broadcastSub = data['broadcastsubtitle'] || data['broadcastsub'] || '';
+      if (broadcastSub) {
+        document.getElementById('broadcastSub').textContent = broadcastSub;
       }
     };
 
@@ -994,23 +1084,38 @@
     window.handleGeneral = function(response) {
       var rows = extractTable(response);
       var data = {};
+
       rows.forEach(function(row) {
-        if (row[0]) data[String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '')] = row[1] ? String(row[1]).trim() : '';
+        if (row[0]) {
+          var cleanKey = String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
+          data[cleanKey] = row[1] ? String(row[1]).trim() : '';
+        }
       });
-      if (data['date']) {
-        document.getElementById('bulletinDate').textContent = data['date'];
-      } else {
-        var nextSun = resolveEventDate('Sunday', '');
-        document.getElementById('bulletinDate').textContent = nextSun.displayDate;
-      }
+
+      if (data['date']) document.getElementById('bulletinDate').textContent = data['date'];
       if (data['scripturequote']) document.getElementById('scriptureQuote').textContent = '“' + data['scripturequote'].replace(/^["“]|["”]$/g, '') + '”';
       if (data['scripturecitation']) document.getElementById('scriptureCitation').textContent = data['scripturecitation'];
-      var imgUrl = data['weeklyimageurl'] || data['weeklyimage'] || '';
+
+      var imgUrl = data['weeklyimageurl'] || data['weeklyimage'] || data['imageurl'] || '';
       if (imgUrl) {
         var imgEl = document.getElementById('weeklyImg');
         imgEl.src = imgUrl;
         imgEl.style.display = 'block';
         document.getElementById('sacredSvg').style.display = 'none';
+      }
+
+      var eventCard = document.getElementById('specialEventCard');
+      var eventTitle = data['specialeventtitle'] || data['specialevent'] || data['eventtitle'] || '';
+      var eventBadge = data['specialeventbadge'] || data['eventbadge'] || 'Special Presentation';
+      var eventDesc = data['specialeventdescription'] || data['specialeventdesc'] || data['eventdesc'] || '';
+
+      if (eventTitle) {
+        document.getElementById('specialEventTitle').textContent = eventTitle;
+        document.getElementById('specialEventBadge').textContent = eventBadge;
+        document.getElementById('specialEventDesc').textContent = eventDesc;
+        eventCard.style.display = 'block';
+      } else {
+        eventCard.style.display = 'none';
       }
     };
 
@@ -1020,19 +1125,34 @@
       if (!rows || rows.length < 1) return;
       var container = document.getElementById('programList');
       container.innerHTML = '';
-      var startIdx = (rows[0][0] && /label|item/i.test(rows[0][0])) ? 1 : 0;
+
+      var startIdx = 0;
+      if (rows[0][0] && (rows[0][0].toLowerCase() === 'label' || rows[0][0].toLowerCase() === 'item')) {
+        startIdx = 1;
+      }
+
       for (var i = startIdx; i < rows.length; i++) {
-        var label = rows[i][0] || '';
-        var details = rows[i][1] || '';
-        var link = rows[i][2] || '';
+        var row = rows[i];
+        var label = row[0] || '';
+        var details = row[1] || '';
+        var link = row[2] || '';
+
         if (!label && !details) continue;
+
         var itemDiv = document.createElement('div');
         itemDiv.className = 'program-item';
+
         if (link) {
-          itemDiv.innerHTML = '<div><div class="program-label">' + label + '</div><div style="font-size:12px;color:var(--text-muted);">' + details + '</div></div><a class="hymn-link" href="' + link + '" target="_blank" rel="noopener noreferrer">↗ Open</a>';
+          itemDiv.innerHTML = '<div>' +
+            '<div class="program-label">' + label + '</div>' +
+            '<div style="font-size:12px;color:var(--text-muted);">' + details + '</div>' +
+            '</div>' +
+            '<a class="hymn-link" href="' + link + '" target="_blank" rel="noopener noreferrer">↗ Open</a>';
         } else {
-          itemDiv.innerHTML = '<span class="program-label">' + label + '</span><span class="program-val">' + details + '</span>';
+          itemDiv.innerHTML = '<span class="program-label">' + label + '</span>' +
+            '<span class="program-val">' + details + '</span>';
         }
+
         container.appendChild(itemDiv);
       }
     };
@@ -1042,11 +1162,15 @@
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
       var youthContainer = document.getElementById('youthTimeline');
+
       var sundayBlocks = [];
+      var sundayMap = {};
       var customYouthBlocks = [];
 
       var startIdx = 0;
-      if (rows[0] && rows[0][0] && /day/i.test(rows[0][0])) startIdx = 1;
+      if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][2] && rows[0][2].toLowerCase().indexOf('title') !== -1))) {
+        startIdx = 1;
+      }
 
       for (var i = startIdx; i < rows.length; i++) {
         var row = rows[i] || [];
@@ -1058,29 +1182,32 @@
         var linkTxt = (row[5] || '').trim();
         var linkUrl = (row[6] || '').trim();
 
+        // Safely skip blank spacer rows
         if (!dayStr && !titleStr && !timeStr) continue;
-        if (/day/i.test(dayStr)) continue;
+        if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
 
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
-          var dateInfo = resolveEventDate('Sunday', dateStr);
-          var newBlock = { 
-            time: timeStr, 
-            title: titleStr, 
-            sub: subText, 
-            dateDisplay: dateInfo.displayDate,
-            links: [] 
-          };
-          if (linkTxt && linkUrl) {
-            newBlock.links.push({ text: linkTxt, url: linkUrl });
+          var sKey = timeStr + '___' + titleStr;
+          if (!sundayMap[sKey]) {
+            var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
+            sundayMap[sKey] = newBlock;
+            sundayBlocks.push(newBlock);
           }
-          sundayBlocks.push(newBlock);
+          if (linkTxt && linkUrl) {
+            sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
+          }
         } else {
           var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
-          if (combined.indexOf('valiant') !== -1 && !isValiantWeek()) continue;
+          var isValiant = combined.indexOf('valiant') !== -1;
+
+          if (isValiant && !isValiantWeek()) {
+            continue;
+          }
 
           var dateInfo = resolveEventDate(dayStr, dateStr);
+
           customYouthBlocks.push({
             timestamp: dateInfo.timestamp,
             dateDisplay: dateInfo.displayDate,
@@ -1093,26 +1220,28 @@
         }
       }
 
-      customYouthBlocks.sort(function(a, b) { return a.timestamp - b.timestamp; });
+      customYouthBlocks.sort(function(a, b) {
+        return a.timestamp - b.timestamp;
+      });
 
       // Render Sunday Services
-      if (sundayContainer && sundayBlocks.length > 0) {
+      if (sundayBlocks.length > 0 && sundayContainer) {
         sundayContainer.innerHTML = '';
         sundayBlocks.forEach(function(b) {
           var slotDiv = document.createElement('div');
           slotDiv.className = 'time-slot';
+
           var linksHtml = '';
           if (b.links.length > 0) {
             linksHtml = '<div class="class-grid">';
             b.links.forEach(function(l) {
-              linksHtml += '<a class="lesson-link-btn" href="' + l.url + '" target="_blank"><span>' + l.text + '</span><span>↗</span></a>';
+              linksHtml += '<a class="lesson-link-btn" href="' + l.url + '" target="_blank" rel="noopener noreferrer">' +
+                '<span>' + l.text + '</span><span>↗</span></a>';
             });
             linksHtml += '</div>';
           }
 
-          var formattedTime = formatBadgeTime(b.time);
-
-          slotDiv.innerHTML = '<span class="time-badge">' + formattedTime + '</span>' +
+          slotDiv.innerHTML = '<span class="time-badge">' + formatBadgeTime(b.time) + '</span>' +
             '<div class="time-content">' +
             '<div class="time-name">' + b.title + '</div>' +
             (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') +
@@ -1123,23 +1252,25 @@
         });
       }
 
-      // Render Midweek & Ward Activities
+      // Render Midweek & Ward Activities Section
       if (youthContainer) {
         youthContainer.innerHTML = '';
-        customYouthBlocks.forEach(function(yb) {
-          var slotDiv = document.createElement('div');
-          slotDiv.className = 'time-slot';
-          var formattedTime = formatBadgeTime(yb.time);
 
-          slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formattedTime + '</span>' +
-            '<div class="time-content">' +
-            '<div class="time-name">' + yb.title + '</div>' +
-            (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') +
-            (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
-            (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
-            '</div>';
-          youthContainer.appendChild(slotDiv);
-        });
+        if (customYouthBlocks.length > 0) {
+          customYouthBlocks.forEach(function(yb) {
+            var slotDiv = document.createElement('div');
+            slotDiv.className = 'time-slot';
+
+            slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formatBadgeTime(yb.time) + '</span>' +
+              '<div class="time-content">' +
+              '<div class="time-name">' + yb.title + '</div>' +
+              (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') +
+              (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
+              (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
+              '</div>';
+            youthContainer.appendChild(slotDiv);
+          });
+        }
       }
     };
 
@@ -1148,28 +1279,50 @@
       var rows = extractTable(response);
       if (!rows || rows.length < 1) return;
       var container = document.getElementById('directoryList');
-      var startIdx = (rows[0][0] && /role|position/i.test(rows[0][0])) ? 1 : 0;
-      if (rows.length > startIdx) container.innerHTML = '';
+
+      var startIdx = 0;
+      if (rows[0][0] && (rows[0][0].toLowerCase() === 'role' || rows[0][0].toLowerCase() === 'position')) {
+        startIdx = 1;
+      }
+
+      if (rows.length > startIdx) {
+        container.innerHTML = '';
+      }
 
       for (var i = startIdx; i < rows.length; i++) {
         var role = rows[i][0] || '';
         var name = rows[i][1] || '';
         var phone = rows[i][2] || '';
         var email = rows[i][3] ? rows[i][3].trim() : '';
+
         if (!role && !name) continue;
 
         var cleanPhone = phone.replace(/\D/g, '');
         var rowDiv = document.createElement('div');
         rowDiv.className = 'directory-row';
+
         var buttons = '';
         if (cleanPhone) {
-          buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>';
-          buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>';
+          buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
+            '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
+            '</a>';
+          buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
+            '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
+            '</a>';
         }
         if (email) {
-          buttons += '<a class="action-btn" href="mailto:' + email + '" title="Email ' + name + '"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></a>';
+          buttons += '<a class="action-btn" href="mailto:' + email + '" title="Email ' + name + '" aria-label="Email">' +
+            '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>' +
+            '</a>';
         }
-        rowDiv.innerHTML = '<div><div class="dir-role">' + role + '</div><div class="dir-name">' + name + '</div></div>' + (buttons ? '<div class="dir-actions">' + buttons + '</div>' : '');
+
+        var actionsHtml = buttons ? '<div class="dir-actions">' + buttons + '</div>' : '';
+
+        rowDiv.innerHTML = '<div>' +
+          '<div class="dir-role">' + role + '</div>' +
+          '<div class="dir-name">' + name + '</div>' +
+          '</div>' + actionsHtml;
+
         container.appendChild(rowDiv);
       }
     };
@@ -1180,7 +1333,11 @@
       if (!rows || rows.length < 1) return;
       var container = document.getElementById('announcementsList');
       container.innerHTML = '';
-      var startIdx = (rows[0][1] && /title/i.test(rows[0][1])) ? 1 : 0;
+
+      var startIdx = 0;
+      if (rows[0][1] && (rows[0][1].toLowerCase() === 'title' || rows[0][0].toLowerCase() === 'tag')) {
+        startIdx = 1;
+      }
 
       for (var i = startIdx; i < rows.length; i++) {
         var tag = rows[i][0] || '';
@@ -1188,18 +1345,26 @@
         var body = rows[i][2] || '';
         var actionText = rows[i][3] || '';
         var actionUrl = rows[i][4] || '';
+
         if (!title && !body) continue;
 
         var noticeDiv = document.createElement('div');
         noticeDiv.className = 'notice-item';
+
         var html = '';
         if (tag) html += '<div class="notice-tag">' + tag + '</div>';
         if (title) html += '<div class="notice-title">' + title + '</div>';
         if (body) html += '<div class="notice-body">' + body;
+
         if (actionText && actionUrl) {
-          html += '<div class="signup-card"><span class="signup-text">' + actionText + '</span><a class="signup-btn" href="' + actionUrl + '" target="_blank">Open Link ↗</a></div>';
+          html += '<div class="signup-card">' +
+            '<span class="signup-text">' + actionText + '</span>' +
+            '<a class="signup-btn" href="' + actionUrl + '" target="_blank" rel="noopener noreferrer">Open Link ↗</a>' +
+            '</div>';
         }
+
         if (body) html += '</div>';
+
         noticeDiv.innerHTML = html;
         container.appendChild(noticeDiv);
       }
