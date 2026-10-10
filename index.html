@@ -396,7 +396,7 @@
       padding-top: 0;
     }
 
-    /* Left-side Badge (Strictly for Time) */
+    /* Left-side Badge */
     .time-badge {
       font-size: 11px;
       font-weight: 700;
@@ -683,7 +683,7 @@
     <div class="header-card">
       <h1 class="ward-title" id="wardTitle">Echo Canyon Ward</h1>
       <p class="church-sub" id="churchSub">The Church of Jesus Christ of Latter-day Saints</p>
-      <div class="date-badge" id="bulletinDate">Sunday, October 11, 2026</div>
+      <div class="date-badge" id="bulletinDate">Sunday Services</div>
 
       <!-- Sacred Frame with Image of the Week Support -->
       <div class="sacred-frame">
@@ -812,45 +812,30 @@
       });
     }
 
-    // ==========================================
-    // SHEET ENGINE
-    // ==========================================
     var SHEET_ID = '1C3drfRrPc43Jkmj3AteRQPX1BxZpPDyqrkIIGC4F0vs';
 
     function extractTable(jsonObj) {
-      if (!jsonObj || !jsonObj.table) return [];
-      var result = [];
+      if (!jsonObj || !jsonObj.table || !jsonObj.table.rows) return [];
+      var rows = jsonObj.table.rows;
       var numCols = jsonObj.table.cols ? jsonObj.table.cols.length : 0;
+      var result = [];
 
-      if (jsonObj.table.cols && jsonObj.table.cols.length > 0) {
-        var colRow = jsonObj.table.cols.map(function(c) {
-          return c && c.label ? String(c.label).trim() : '';
-        });
-        if (colRow.some(function(v) { return v !== ''; })) {
-          result.push(colRow);
-        }
-      }
-
-      if (jsonObj.table.rows) {
-        jsonObj.table.rows.forEach(function(row) {
-          if (!row) return;
-          var r = [];
-          var cells = row.c || [];
-          var totalCells = Math.max(numCols, cells.length);
-          for (var i = 0; i < totalCells; i++) {
-            var cell = cells[i];
-            if (!cell || (cell.v === null && cell.f === null) || (cell.v === undefined && cell.f === undefined)) {
-              r.push('');
-            } else if (cell.f !== null && cell.f !== undefined) {
-              r.push(String(cell.f).trim());
-            } else {
-              r.push(String(cell.v).trim());
-            }
+      for (var i = 0; i < rows.length; i++) {
+        var r = [];
+        var cells = rows[i].c || [];
+        var len = Math.max(numCols, cells.length);
+        for (var j = 0; j < len; j++) {
+          var cell = cells[j];
+          if (!cell || (cell.v === null && cell.f === null) || (cell.v === undefined && cell.f === undefined)) {
+            r.push('');
+          } else if (cell.f !== null && cell.f !== undefined) {
+            r.push(String(cell.f).trim());
+          } else {
+            r.push(String(cell.v).trim());
           }
-          result.push(r);
-        });
+        }
+        result.push(r);
       }
-
       return result;
     }
 
@@ -859,68 +844,40 @@
       var cacheBuster = Date.now();
       script.crossOrigin = 'anonymous';
       script.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + cacheBuster;
-      script.onerror = function() {
-        console.warn('Optional tab not loaded: ' + sheetName);
-      };
       document.body.appendChild(script);
     }
 
-    // BULLETPROOF TIME FORMATTER
+    // Cleans multi-line cell strings like "10:30 - 11:30\nam"
     function formatBadgeTime(rawTime) {
       if (!rawTime) return '';
-
-      // Normalize unicode non-breaking spaces (\u00A0), multiple spaces, and carriage returns
-      var str = String(rawTime)
-        .replace(/[\u00A0\u2000-\u200B\r\n\t]+/g, ' ')
+      var clean = String(rawTime)
+        .replace(/[\u00A0\r\n]+/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
 
-      // Normalize dashes
-      str = str.replace(/[–—−]/g, '-');
+      clean = clean.replace(/^(mon|tue|wed|thu|fri|sat|sun)[a-z]*\s*[•\-–—:]*\s*/i, '').trim();
+      clean = clean.replace(/\s*[-–—]\s*/g, ' – ');
 
-      if (/all\s*day/i.test(str)) {
+      if (/all\s*day/i.test(clean)) {
         return '<span class="time-range">All Day</span>';
       }
 
-      // Check for range e.g. "10:30 - 11:30 am", "11:35 - 12:00 pm", or "6:00am - 8:00pm"
-      if (str.indexOf('-') !== -1) {
-        var parts = str.split('-');
-        var left = parts[0].trim();
-        var right = parts.slice(1).join('-').trim();
-
-        // Extract meridiem (am/pm) if present at the end
-        var merMatch = right.match(/(am|pm)$/i);
-        var meridiem = merMatch ? merMatch[1].toLowerCase() : '';
-        if (meridiem) {
-          right = right.replace(new RegExp('\\s*' + meridiem + '$', 'i'), '').trim();
+      if (clean.indexOf('–') !== -1) {
+        var matchEnd = clean.match(/^(.*?)\s*(am|pm)\b$/i);
+        if (matchEnd) {
+          return '<span class="time-range">' + matchEnd[1].trim() + '</span><span class="time-meridiem">' + matchEnd[2].toLowerCase() + '</span>';
         }
-
-        // Clean any leftover am/pm in left part too if written as "10:30am - 11:30am"
-        var leftMerMatch = left.match(/(am|pm)$/i);
-        if (leftMerMatch && !meridiem) {
-          meridiem = leftMerMatch[1].toLowerCase();
-        }
-        left = left.replace(/\s*(am|pm)$/i, '').trim();
-
-        var rangeText = left + ' – ' + right;
-        if (meridiem) {
-          return '<span class="time-range">' + rangeText + '</span><span class="time-meridiem">' + meridiem + '</span>';
-        }
-        return '<span class="time-range">' + rangeText + '</span>';
+        return '<span class="time-range">' + clean + '</span>';
       }
 
-      // Check for single time e.g. "7:00 PM"
-      var singleMerMatch = str.match(/(am|pm)$/i);
-      if (singleMerMatch) {
-        var sMer = singleMerMatch[1].toLowerCase();
-        var sTime = str.replace(new RegExp('\\s*' + sMer + '$', 'i'), '').trim();
-        return '<span class="time-range">' + sTime + '</span><span class="time-meridiem">' + sMer + '</span>';
+      var matchSingle = clean.match(/^(.*?)\s*(am|pm)\b/i);
+      if (matchSingle) {
+        return '<span class="time-range">' + matchSingle[1].trim() + '</span><span class="time-meridiem">' + matchSingle[2].toLowerCase() + '</span>';
       }
-
-      // Fallback: render text cleanly
-      return '<span class="time-range">' + str + '</span>';
+      return '<span class="time-range">' + clean + '</span>';
     }
 
+    // Resolves Next Upcoming Date (including SUNDAY) when column is blank
     function resolveEventDate(dayStr, dateStr) {
       var now = new Date();
       var monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -928,7 +885,6 @@
 
       if (dateStr && dateStr.trim()) {
         var s = dateStr.trim();
-
         var slashRange = s.match(/(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?\s*[-–—\n]\s*(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?/);
         if (slashRange) {
           var sm1 = parseInt(slashRange[1], 10);
@@ -936,17 +892,10 @@
           var sm2 = parseInt(slashRange[3], 10);
           var sd2 = parseInt(slashRange[4], 10);
           var ts1 = new Date(now.getFullYear(), sm1 - 1, sd1, 12, 0, 0).getTime();
-          if (sm1 === sm2) {
-            return {
-              timestamp: ts1,
-              displayDate: monthNames[sm1 - 1] + ' ' + sd1 + '–' + sd2
-            };
-          } else {
-            return {
-              timestamp: ts1,
-              displayDate: monthNames[sm1 - 1] + ' ' + sd1 + ' – ' + monthNames[sm2 - 1] + ' ' + sd2
-            };
-          }
+          return {
+            timestamp: ts1,
+            displayDate: sm1 === sm2 ? (monthNames[sm1 - 1] + ' ' + sd1 + '–' + sd2) : (monthNames[sm1 - 1] + ' ' + sd1 + ' – ' + monthNames[sm2 - 1] + ' ' + sd2)
+          };
         }
 
         var textRange = s.match(/([a-z]+)\s*(\d{1,2})(?:st|nd|rd|th)?\s*[-–—\n]\s*(?:([a-z]+)\s*)?(\d{1,2})(?:st|nd|rd|th)?/i);
@@ -956,17 +905,8 @@
           if (mIdx1 !== -1) {
             var dStart = parseInt(textRange[2], 10);
             var dEnd = parseInt(textRange[4], 10);
-            var tsText = new Date(now.getFullYear(), mIdx1, dStart, 12, 0, 0).getTime();
-            if (textRange[3]) {
-              var mo2Str = textRange[3].substring(0, 3).toLowerCase();
-              var mIdx2 = monthNames.findIndex(function(mn) { return mn.toLowerCase() === mo2Str; });
-              return {
-                timestamp: tsText,
-                displayDate: monthNames[mIdx1] + ' ' + dStart + ' – ' + (mIdx2 !== -1 ? monthNames[mIdx2] : textRange[3]) + ' ' + dEnd
-              };
-            }
             return {
-              timestamp: tsText,
+              timestamp: new Date(now.getFullYear(), mIdx1, dStart, 12, 0, 0).getTime(),
               displayDate: monthNames[mIdx1] + ' ' + dStart + '–' + dEnd
             };
           }
@@ -977,60 +917,20 @@
           var gy = parseInt(gMatch[1], 10);
           var gm = parseInt(gMatch[2], 10);
           var gd = parseInt(gMatch[3], 10);
-
-          if ((gy === 2010 && gd === 9) || /&|-/.test(dayStr)) {
-            var fullMonthName = monthNames[gm] === 'Oct' ? 'October' : monthNames[gm];
-            return {
-              timestamp: new Date(now.getFullYear(), gm, gd, 12, 0, 0).getTime(),
-              displayDate: fullMonthName + ' ' + gd + '–' + (gd + 1)
-            };
-          }
-
           var gDate = new Date(gy, gm, gd, 12, 0, 0);
-          var gDayName = dayNames[gDate.getDay()];
           return {
             timestamp: gDate.getTime(),
-            displayDate: gDayName + ', ' + monthNames[gm] + ' ' + gd
+            displayDate: dayNames[gDate.getDay()] + ', ' + monthNames[gm] + ' ' + gd
           };
         }
 
-        var singleNamed = s.match(/^([a-z]+)\s*(\d{1,2})(?:st|nd|rd|th)?$/i);
-        if (singleNamed) {
-          var snMoStr = singleNamed[1].substring(0, 3).toLowerCase();
-          var snMIdx = monthNames.findIndex(function(mn) { return mn.toLowerCase() === snMoStr; });
-          if (snMIdx !== -1) {
-            var snDay = parseInt(singleNamed[2], 10);
-            var snDate = new Date(now.getFullYear(), snMIdx, snDay, 12, 0, 0);
-            var snDayLabel = dayNames[snDate.getDay()];
-            return {
-              timestamp: snDate.getTime(),
-              displayDate: snDayLabel + ', ' + monthNames[snMIdx] + ' ' + snDay
-            };
-          }
-        }
-
-        var singleSlash = s.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/);
-        if (singleSlash) {
-          var nm = parseInt(singleSlash[1], 10);
-          var nd = parseInt(singleSlash[2], 10);
-          var ny = singleSlash[3] ? parseInt(singleSlash[3], 10) : now.getFullYear();
-          if (ny < 100) ny += 2000;
-          var numDateObj = new Date(ny, nm - 1, nd, 12, 0, 0);
-          var numDayName = dayNames[numDateObj.getDay()];
-          return {
-            timestamp: numDateObj.getTime(),
-            displayDate: numDayName + ', ' + monthNames[nm - 1] + ' ' + nd
-          };
-        }
-
-        return {
-          timestamp: now.getTime() + 86400000,
-          displayDate: s
-        };
+        return { timestamp: now.getTime() + 86400000, displayDate: s };
       }
 
-      var targetIdx = 3;
-      if (/mon/i.test(dayStr)) targetIdx = 1;
+      // If Date is BLANK, find the upcoming target day (defaults to Sunday 0)
+      var targetIdx = 0;
+      if (/sun/i.test(dayStr)) targetIdx = 0;
+      else if (/mon/i.test(dayStr)) targetIdx = 1;
       else if (/tue/i.test(dayStr)) targetIdx = 2;
       else if (/wed/i.test(dayStr)) targetIdx = 3;
       else if (/thu/i.test(dayStr)) targetIdx = 4;
@@ -1038,10 +938,11 @@
       else if (/sat/i.test(dayStr)) targetIdx = 6;
 
       var diff = (targetIdx - now.getDay() + 7) % 7;
-      if (diff === 0 && now.getHours() >= 21) diff = 7;
-      else if (diff === 0 && now.getDay() !== targetIdx) diff = 7;
+      if (diff === 0 && now.getDay() === targetIdx && now.getHours() >= 18) {
+        diff = 7;
+      }
 
-      var computed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, 19, 0, 0);
+      var computed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, 12, 0, 0);
       return {
         timestamp: computed.getTime(),
         displayDate: dayNames[computed.getDay()] + ', ' + monthNames[computed.getMonth()] + ' ' + computed.getDate()
@@ -1052,7 +953,6 @@
       var now = new Date();
       var dayOfWeek = now.getDay();
       var hour = now.getHours();
-
       if (dayOfWeek === 0 && hour < 6) return false;
       if (dayOfWeek > 3) return false;
       if (dayOfWeek === 3 && hour >= 21) return false;
@@ -1061,7 +961,6 @@
       var targetWed = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilWed);
       var dayOfMonth = targetWed.getDate();
       var wedNumber = Math.floor((dayOfMonth - 1) / 7) + 1;
-
       return (wedNumber === 1 || wedNumber === 3);
     }
 
@@ -1069,41 +968,25 @@
     window.handleAdmin = function(response) {
       var rows = extractTable(response);
       var data = {};
-
       rows.forEach(function(row) {
-        if (row[0]) {
-          var cleanKey = String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
-          data[cleanKey] = row[1] ? String(row[1]).trim() : '';
-        }
+        if (row[0]) data[String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '')] = row[1] ? String(row[1]).trim() : '';
       });
-
       var wardName = data['wardname'] || data['ward'] || '';
       if (wardName) {
         document.getElementById('topWardPillText').textContent = wardName;
         document.getElementById('wardTitle').textContent = wardName;
         document.title = wardName + ' • Digital Bulletin';
       }
-
       var churchName = data['churchname'] || data['church'] || '';
-      if (churchName) {
-        document.getElementById('churchSub').textContent = churchName;
-      }
-
+      if (churchName) document.getElementById('churchSub').textContent = churchName;
       var broadcastUrl = data['broadcasturl'] || '';
       var isVisible = (data['broadcastvisible'] || 'true').toLowerCase() !== 'false';
       var container = document.getElementById('broadcastContainer');
-      var bLink = document.getElementById('broadcastLink');
-
       if (broadcastUrl && isVisible) {
-        bLink.href = broadcastUrl;
+        document.getElementById('broadcastLink').href = broadcastUrl;
         container.style.display = 'flex';
-      } else if (!isVisible) {
+      } else {
         container.style.display = 'none';
-      }
-
-      var broadcastSub = data['broadcastsubtitle'] || data['broadcastsub'] || '';
-      if (broadcastSub) {
-        document.getElementById('broadcastSub').textContent = broadcastSub;
       }
     };
 
@@ -1111,38 +994,23 @@
     window.handleGeneral = function(response) {
       var rows = extractTable(response);
       var data = {};
-
       rows.forEach(function(row) {
-        if (row[0]) {
-          var cleanKey = String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '');
-          data[cleanKey] = row[1] ? String(row[1]).trim() : '';
-        }
+        if (row[0]) data[String(row[0]).toLowerCase().replace(/[^a-z0-9]/g, '')] = row[1] ? String(row[1]).trim() : '';
       });
-
-      if (data['date']) document.getElementById('bulletinDate').textContent = data['date'];
+      if (data['date']) {
+        document.getElementById('bulletinDate').textContent = data['date'];
+      } else {
+        var nextSun = resolveEventDate('Sunday', '');
+        document.getElementById('bulletinDate').textContent = nextSun.displayDate;
+      }
       if (data['scripturequote']) document.getElementById('scriptureQuote').textContent = '“' + data['scripturequote'].replace(/^["“]|["”]$/g, '') + '”';
       if (data['scripturecitation']) document.getElementById('scriptureCitation').textContent = data['scripturecitation'];
-
-      var imgUrl = data['weeklyimageurl'] || data['weeklyimage'] || data['imageurl'] || '';
+      var imgUrl = data['weeklyimageurl'] || data['weeklyimage'] || '';
       if (imgUrl) {
         var imgEl = document.getElementById('weeklyImg');
         imgEl.src = imgUrl;
         imgEl.style.display = 'block';
         document.getElementById('sacredSvg').style.display = 'none';
-      }
-
-      var eventCard = document.getElementById('specialEventCard');
-      var eventTitle = data['specialeventtitle'] || data['specialevent'] || data['eventtitle'] || '';
-      var eventBadge = data['specialeventbadge'] || data['eventbadge'] || 'Special Presentation';
-      var eventDesc = data['specialeventdescription'] || data['specialeventdesc'] || data['eventdesc'] || '';
-
-      if (eventTitle) {
-        document.getElementById('specialEventTitle').textContent = eventTitle;
-        document.getElementById('specialEventBadge').textContent = eventBadge;
-        document.getElementById('specialEventDesc').textContent = eventDesc;
-        eventCard.style.display = 'block';
-      } else {
-        eventCard.style.display = 'none';
       }
     };
 
@@ -1152,34 +1020,19 @@
       if (!rows || rows.length < 1) return;
       var container = document.getElementById('programList');
       container.innerHTML = '';
-
-      var startIdx = 0;
-      if (rows[0][0] && (rows[0][0].toLowerCase() === 'label' || rows[0][0].toLowerCase() === 'item')) {
-        startIdx = 1;
-      }
-
+      var startIdx = (rows[0][0] && /label|item/i.test(rows[0][0])) ? 1 : 0;
       for (var i = startIdx; i < rows.length; i++) {
-        var row = rows[i];
-        var label = row[0] || '';
-        var details = row[1] || '';
-        var link = row[2] || '';
-
+        var label = rows[i][0] || '';
+        var details = rows[i][1] || '';
+        var link = rows[i][2] || '';
         if (!label && !details) continue;
-
         var itemDiv = document.createElement('div');
         itemDiv.className = 'program-item';
-
         if (link) {
-          itemDiv.innerHTML = '<div>' +
-            '<div class="program-label">' + label + '</div>' +
-            '<div style="font-size:12px;color:var(--text-muted);">' + details + '</div>' +
-            '</div>' +
-            '<a class="hymn-link" href="' + link + '" target="_blank" rel="noopener noreferrer">↗ Open</a>';
+          itemDiv.innerHTML = '<div><div class="program-label">' + label + '</div><div style="font-size:12px;color:var(--text-muted);">' + details + '</div></div><a class="hymn-link" href="' + link + '" target="_blank" rel="noopener noreferrer">↗ Open</a>';
         } else {
-          itemDiv.innerHTML = '<span class="program-label">' + label + '</span>' +
-            '<span class="program-val">' + details + '</span>';
+          itemDiv.innerHTML = '<span class="program-label">' + label + '</span><span class="program-val">' + details + '</span>';
         }
-
         container.appendChild(itemDiv);
       }
     };
@@ -1189,20 +1042,14 @@
       var rows = extractTable(response);
       var sundayContainer = document.getElementById('sundayTimeline');
       var youthContainer = document.getElementById('youthTimeline');
-
       var sundayBlocks = [];
-      var sundayMap = {};
       var customYouthBlocks = [];
 
       var startIdx = 0;
-      if (rows[0] && rows[0][0] && (rows[0][0].toLowerCase() === 'day' || (rows[0][2] && rows[0][2].toLowerCase().indexOf('title') !== -1))) {
-        startIdx = 1;
-      }
+      if (rows[0] && rows[0][0] && /day/i.test(rows[0][0])) startIdx = 1;
 
       for (var i = startIdx; i < rows.length; i++) {
         var row = rows[i] || [];
-
-        // Flexible mapping: handles empty Column B without breaking Column D (Time)
         var dayStr = (row[0] || '').trim();
         var dateStr = (row[1] || '').trim();
         var titleStr = (row[2] || '').trim();
@@ -1211,38 +1058,29 @@
         var linkTxt = (row[5] || '').trim();
         var linkUrl = (row[6] || '').trim();
 
-        // Edge case: if Column B was completely omitted in Sheets, shift dynamically
-        if (!timeStr && /^\d{1,2}[:.]\d{2}/.test(titleStr)) {
-          timeStr = titleStr;
-          titleStr = dateStr;
-          dateStr = '';
-        }
-
         if (!dayStr && !titleStr && !timeStr) continue;
-        if (dayStr.toLowerCase() === 'day' || titleStr.toLowerCase().indexOf('title') !== -1) continue;
+        if (/day/i.test(dayStr)) continue;
 
         var isSunday = /^sun/i.test(dayStr);
 
         if (isSunday) {
-          var sKey = timeStr + '___' + titleStr;
-          if (!sundayMap[sKey]) {
-            var newBlock = { time: timeStr, title: titleStr, sub: subText, links: [] };
-            sundayMap[sKey] = newBlock;
-            sundayBlocks.push(newBlock);
-          }
+          var dateInfo = resolveEventDate('Sunday', dateStr);
+          var newBlock = { 
+            time: timeStr, 
+            title: titleStr, 
+            sub: subText, 
+            dateDisplay: dateInfo.displayDate,
+            links: [] 
+          };
           if (linkTxt && linkUrl) {
-            sundayMap[sKey].links.push({ text: linkTxt, url: linkUrl });
+            newBlock.links.push({ text: linkTxt, url: linkUrl });
           }
+          sundayBlocks.push(newBlock);
         } else {
           var combined = (dayStr + ' ' + titleStr + ' ' + subText).toLowerCase();
-          var isValiant = combined.indexOf('valiant') !== -1;
-
-          if (isValiant && !isValiantWeek()) {
-            continue;
-          }
+          if (combined.indexOf('valiant') !== -1 && !isValiantWeek()) continue;
 
           var dateInfo = resolveEventDate(dayStr, dateStr);
-
           customYouthBlocks.push({
             timestamp: dateInfo.timestamp,
             dateDisplay: dateInfo.displayDate,
@@ -1255,30 +1093,26 @@
         }
       }
 
-      customYouthBlocks.sort(function(a, b) {
-        return a.timestamp - b.timestamp;
-      });
+      customYouthBlocks.sort(function(a, b) { return a.timestamp - b.timestamp; });
 
       // Render Sunday Services
-      if (sundayBlocks.length > 0 && sundayContainer) {
+      if (sundayContainer && sundayBlocks.length > 0) {
         sundayContainer.innerHTML = '';
         sundayBlocks.forEach(function(b) {
           var slotDiv = document.createElement('div');
           slotDiv.className = 'time-slot';
-
           var linksHtml = '';
           if (b.links.length > 0) {
             linksHtml = '<div class="class-grid">';
             b.links.forEach(function(l) {
-              linksHtml += '<a class="lesson-link-btn" href="' + l.url + '" target="_blank" rel="noopener noreferrer">' +
-                '<span>' + l.text + '</span><span>↗</span></a>';
+              linksHtml += '<a class="lesson-link-btn" href="' + l.url + '" target="_blank"><span>' + l.text + '</span><span>↗</span></a>';
             });
             linksHtml += '</div>';
           }
 
-          var badgeContent = formatBadgeTime(b.time);
+          var formattedTime = formatBadgeTime(b.time);
 
-          slotDiv.innerHTML = '<span class="time-badge">' + badgeContent + '</span>' +
+          slotDiv.innerHTML = '<span class="time-badge">' + formattedTime + '</span>' +
             '<div class="time-content">' +
             '<div class="time-name">' + b.title + '</div>' +
             (b.sub ? '<div class="time-sub">' + b.sub + '</div>' : '') +
@@ -1289,27 +1123,23 @@
         });
       }
 
-      // Render Midweek & Ward Activities Section
+      // Render Midweek & Ward Activities
       if (youthContainer) {
         youthContainer.innerHTML = '';
+        customYouthBlocks.forEach(function(yb) {
+          var slotDiv = document.createElement('div');
+          slotDiv.className = 'time-slot';
+          var formattedTime = formatBadgeTime(yb.time);
 
-        if (customYouthBlocks.length > 0) {
-          customYouthBlocks.forEach(function(yb) {
-            var slotDiv = document.createElement('div');
-            slotDiv.className = 'time-slot';
-
-            var badgeContent = formatBadgeTime(yb.time);
-
-            slotDiv.innerHTML = '<span class="time-badge accent-badge">' + badgeContent + '</span>' +
-              '<div class="time-content">' +
-              '<div class="time-name">' + yb.title + '</div>' +
-              (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') +
-              (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
-              (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
-              '</div>';
-            youthContainer.appendChild(slotDiv);
-          });
-        }
+          slotDiv.innerHTML = '<span class="time-badge accent-badge">' + formattedTime + '</span>' +
+            '<div class="time-content">' +
+            '<div class="time-name">' + yb.title + '</div>' +
+            (yb.dateDisplay ? '<div class="time-date-line">' + yb.dateDisplay + '</div>' : '') +
+            (yb.sub ? '<div class="time-sub">' + yb.sub + '</div>' : '') +
+            (yb.linkText && yb.linkUrl ? '<div class="class-grid"><a class="lesson-link-btn" href="' + yb.linkUrl + '" target="_blank"><span>' + yb.linkText + '</span><span>↗</span></a></div>' : '') +
+            '</div>';
+          youthContainer.appendChild(slotDiv);
+        });
       }
     };
 
@@ -1318,50 +1148,28 @@
       var rows = extractTable(response);
       if (!rows || rows.length < 1) return;
       var container = document.getElementById('directoryList');
-
-      var startIdx = 0;
-      if (rows[0][0] && (rows[0][0].toLowerCase() === 'role' || rows[0][0].toLowerCase() === 'position')) {
-        startIdx = 1;
-      }
-
-      if (rows.length > startIdx) {
-        container.innerHTML = '';
-      }
+      var startIdx = (rows[0][0] && /role|position/i.test(rows[0][0])) ? 1 : 0;
+      if (rows.length > startIdx) container.innerHTML = '';
 
       for (var i = startIdx; i < rows.length; i++) {
         var role = rows[i][0] || '';
         var name = rows[i][1] || '';
         var phone = rows[i][2] || '';
         var email = rows[i][3] ? rows[i][3].trim() : '';
-
         if (!role && !name) continue;
 
         var cleanPhone = phone.replace(/\D/g, '');
         var rowDiv = document.createElement('div');
         rowDiv.className = 'directory-row';
-
         var buttons = '';
         if (cleanPhone) {
-          buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '" aria-label="Call">' +
-            '<svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg>' +
-            '</a>';
-          buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '" aria-label="Text">' +
-            '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>' +
-            '</a>';
+          buttons += '<a class="action-btn" href="tel:' + cleanPhone + '" title="Call ' + name + '"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a>';
+          buttons += '<a class="action-btn" href="sms:' + cleanPhone + '" title="Text ' + name + '"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>';
         }
         if (email) {
-          buttons += '<a class="action-btn" href="mailto:' + email + '" title="Email ' + name + '" aria-label="Email">' +
-            '<svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>' +
-            '</a>';
+          buttons += '<a class="action-btn" href="mailto:' + email + '" title="Email ' + name + '"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></a>';
         }
-
-        var actionsHtml = buttons ? '<div class="dir-actions">' + buttons + '</div>' : '';
-
-        rowDiv.innerHTML = '<div>' +
-          '<div class="dir-role">' + role + '</div>' +
-          '<div class="dir-name">' + name + '</div>' +
-          '</div>' + actionsHtml;
-
+        rowDiv.innerHTML = '<div><div class="dir-role">' + role + '</div><div class="dir-name">' + name + '</div></div>' + (buttons ? '<div class="dir-actions">' + buttons + '</div>' : '');
         container.appendChild(rowDiv);
       }
     };
@@ -1372,11 +1180,7 @@
       if (!rows || rows.length < 1) return;
       var container = document.getElementById('announcementsList');
       container.innerHTML = '';
-
-      var startIdx = 0;
-      if (rows[0][1] && (rows[0][1].toLowerCase() === 'title' || rows[0][0].toLowerCase() === 'tag')) {
-        startIdx = 1;
-      }
+      var startIdx = (rows[0][1] && /title/i.test(rows[0][1])) ? 1 : 0;
 
       for (var i = startIdx; i < rows.length; i++) {
         var tag = rows[i][0] || '';
@@ -1384,26 +1188,18 @@
         var body = rows[i][2] || '';
         var actionText = rows[i][3] || '';
         var actionUrl = rows[i][4] || '';
-
         if (!title && !body) continue;
 
         var noticeDiv = document.createElement('div');
         noticeDiv.className = 'notice-item';
-
         var html = '';
         if (tag) html += '<div class="notice-tag">' + tag + '</div>';
         if (title) html += '<div class="notice-title">' + title + '</div>';
         if (body) html += '<div class="notice-body">' + body;
-
         if (actionText && actionUrl) {
-          html += '<div class="signup-card">' +
-            '<span class="signup-text">' + actionText + '</span>' +
-            '<a class="signup-btn" href="' + actionUrl + '" target="_blank" rel="noopener noreferrer">Open Link ↗</a>' +
-            '</div>';
+          html += '<div class="signup-card"><span class="signup-text">' + actionText + '</span><a class="signup-btn" href="' + actionUrl + '" target="_blank">Open Link ↗</a></div>';
         }
-
         if (body) html += '</div>';
-
         noticeDiv.innerHTML = html;
         container.appendChild(noticeDiv);
       }
