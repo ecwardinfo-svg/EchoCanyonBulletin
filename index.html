@@ -197,7 +197,21 @@
     };
     window.handleGeneral = function(response) {
       var data = mapRows(response).data;
-      if (data.date) document.getElementById('bulletinDate').textContent = data.date;
+      function getUpcomingSundayStr() {
+  var now = new Date();
+  var daysUntilSunday = (7 - now.getDay()) % 7;
+  // If it's already Sunday past 8 PM, look forward to next Sunday:
+  if (now.getDay() === 0 && now.getHours() >= 20) {
+    daysUntilSunday = 7;
+  }
+  var sun = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntilSunday);
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  return 'Sunday, ' + months[sun.getMonth()] + ' ' + sun.getDate() + ', ' + sun.getFullYear();
+}
+
+// Uses sheet value if entered, otherwise calculates next Sunday automatically:
+document.getElementById('bulletinDate').textContent = data.date || getUpcomingSundayStr();
+
       if (data.scripturequote) document.getElementById('scriptureQuote').textContent = '“' + data.scripturequote.replace(/^["“]|["”]$/g,'') + '”';
       if (data.scripturecitation) document.getElementById('scriptureCitation').textContent = data.scripturecitation;
       var img = data.weeklyimageurl || data.weeklyimage || data.imageurl || '';
