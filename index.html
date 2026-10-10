@@ -884,6 +884,25 @@
       return '<span class="time-range">' + clean + '</span>';
     }
 
+    // Returns a nicely formatted string for the next upcoming Sunday.
+    // If today is Sunday before 6 PM, uses today; otherwise the following Sunday.
+    // Users only need to put a date in the General tab if they want something else.
+    function getUpcomingSundayLabel() {
+      var now = new Date();
+      var day = now.getDay(); // 0 = Sunday
+      var hour = now.getHours();
+
+      var daysAhead = (7 - day) % 7;
+      if (day === 0 && hour >= 18) {
+        daysAhead = 7; // after 6 PM on Sunday, show next week
+      }
+
+      var sunday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysAhead);
+      var monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+      return 'Sunday, ' + monthNames[sunday.getMonth()] + ' ' + sunday.getDate() + ', ' + sunday.getFullYear();
+    }
+
     // Universal Date Resolver
     function resolveEventDate(dayStr, dateStr) {
       var now = new Date();
@@ -1371,6 +1390,13 @@
     };
 
     document.addEventListener('DOMContentLoaded', function() {
+      // Auto-fill the date badge with the upcoming Sunday.
+      // The General sheet tab can still override this if a Date is provided.
+      var dateBadge = document.getElementById('bulletinDate');
+      if (dateBadge) {
+        dateBadge.textContent = getUpcomingSundayLabel();
+      }
+
       loadScript('Admin', 'handleAdmin');
       loadScript('General', 'handleGeneral');
       loadScript('Program', 'handleProgram');
