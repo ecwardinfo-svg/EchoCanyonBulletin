@@ -71,13 +71,18 @@
     .bottom-bar { position:fixed; bottom:14px; left:50%; transform:translateX(-50%); width:calc(100% - 32px); max-width:410px; background:var(--card-bg); border:1px solid var(--card-border); border-radius:999px; padding:6px 8px; display:flex; justify-content:space-around; box-shadow:0 10px 25px rgba(0,0,0,.18); z-index:9999; }
     .nav-link { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px 8px; text-decoration:none; color:var(--text-muted); font-size:13px; font-weight:700; }
     .nav-link svg { width:19px; height:19px; }
+    .top-actions { display:flex; gap:8px; }
+    #refreshBtn.spinning svg { animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .refresh-toast { position:fixed; top:14px; left:50%; transform:translateX(-50%); background:var(--primary); color:#fff; font-size:15px; font-weight:700; padding:8px 16px; border-radius:999px; box-shadow:var(--shadow-md); z-index:10000; opacity:0; transition:opacity .3s; pointer-events:none; }
+    .refresh-toast.show { opacity:1; }
   </style>
 </head>
 <body>
   <div class="app-shell">
     <div class="top-bar">
       <div class="ward-pill" id="topWardPillText">Echo Canyon Ward</div>
-      <button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button>
+      <div class="top-actions"><button class="theme-toggle-btn" id="refreshBtn" title="Refresh bulletin" aria-label="Refresh bulletin"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button><button class="theme-toggle-btn" id="themeToggle" title="Toggle dark mode"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></button></div>
     </div>
     <div class="header-card">
       <h1 class="ward-title" id="wardTitle">Echo Canyon Ward</h1>
@@ -139,6 +144,8 @@
     }
     function loadScript(sheetName, callbackName) {
       var s = document.createElement('script');
+      s.className = 'sheet-loader';
+      s.onload = s.onerror = function(){ s.parentNode && s.parentNode.removeChild(s); pendingLoads--; if (pendingLoads <= 0) finishRefresh(); };
       s.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=' + encodeURIComponent(sheetName) + '&headers=0&tqx=responseHandler:' + callbackName + '&_t=' + Date.now();
       document.body.appendChild(s);
     }
@@ -275,7 +282,29 @@
       var start = rows[0] && /title|tag/i.test((rows[0][1]||'')+(rows[0][0]||'')) ? 1 : 0;
       for (var i=start;i<rows.length;i++){ var tag=rows[i][0]||'', title=rows[i][1]||'', body=rows[i][2]||'', at=rows[i][3]||'', au=rows[i][4]||''; if(!title&&!body) continue; var d=document.createElement('div'); d.className='notice-item'; d.innerHTML=(tag?'<div class="notice-tag">'+tag+'</div>':'')+(title?'<div class="notice-title">'+title+'</div>':'')+(body?'<div class="notice-body">'+body+(at&&au?'<div class="signup-card"><span>'+at+'</span><a class="signup-btn" href="'+au+'" target="_blank">Open Link ↗</a></div>':'')+'</div>':''); box.appendChild(d); }
     };
-    document.addEventListener('DOMContentLoaded', function(){ ['Admin','General','Program','Schedule','Directory','Announcements'].forEach(function(name){ loadScript(name, 'handle'+name); }); });
+    var SHEETS = ['Admin','General','Program','Schedule','Directory','Announcements'];
+    var pendingLoads = 0, refreshing = false, showToastWhenDone = false, lastLoad = 0;
+    function finishRefresh() {
+      refreshing = false;
+      document.getElementById('refreshBtn').classList.remove('spinning');
+      if (showToastWhenDone) { var t = document.getElementById('refreshToast'); t.classList.add('show'); setTimeout(function(){ t.classList.remove('show'); }, 1600); }
+      showToastWhenDone = false;
+    }
+    function loadAll(showToast) {
+      if (refreshing) return;
+      refreshing = true; showToastWhenDone = !!showToast; lastLoad = Date.now();
+      document.getElementById('refreshBtn').classList.add('spinning');
+      pendingLoads = SHEETS.length;
+      SHEETS.forEach(function(name){ loadScript(name, 'handle'+name); });
+      setTimeout(function(){ if (refreshing) finishRefresh(); }, 15000);
+    }
+    document.addEventListener('DOMContentLoaded', function(){
+      var toast = document.createElement('div'); toast.id = 'refreshToast'; toast.className = 'refresh-toast'; toast.textContent = 'Bulletin updated'; document.body.appendChild(toast);
+      document.getElementById('refreshBtn').addEventListener('click', function(){ loadAll(true); });
+      loadAll(false);
+    });
+    // Also refresh automatically when the app is reopened from the Home Screen after 1+ minute away
+    document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible' && Date.now() - lastLoad > 60000) loadAll(false); });
   </script>
 </body>
 </html>
