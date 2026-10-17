@@ -85,6 +85,22 @@
     .last-updated:empty { display:none; }
     .cal-btn { display:inline-flex; align-items:center; gap:6px; margin-top:8px; font-size:calc(13.5px * var(--fs,1)); font-weight:700; color:var(--accent); background:var(--accent-light); border:1px solid var(--accent); padding:8px 12px; min-height:40px; border-radius:8px; text-decoration:none; white-space:nowrap; }
     .cal-btn svg { width:16px; height:16px; flex-shrink:0; }
+    .cal-btn { font-family:inherit; cursor:pointer; }
+    .cal-sheet-bg { position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:10001; display:none; align-items:flex-end; justify-content:center; }
+    .cal-sheet-bg.show { display:flex; }
+    .cal-sheet { width:100%; max-width:440px; background:var(--card-bg); color:var(--text-main); border-radius:20px 20px 0 0; padding:20px 18px calc(20px + env(safe-area-inset-bottom)); box-shadow:0 -10px 30px rgba(0,0,0,.25); max-height:90vh; overflow-y:auto; }
+    .cal-sheet-head { font-size:calc(14px * var(--fs,1)); font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--text-muted); }
+    .cal-sheet-title { font-size:calc(20px * var(--fs,1)); font-weight:800; margin-top:4px; line-height:1.3; }
+    .cal-sheet-when { font-size:calc(16px * var(--fs,1)); font-weight:600; color:var(--accent); margin:2px 0 16px; }
+    .cal-option { display:flex; align-items:center; gap:14px; width:100%; min-height:64px; padding:12px 16px; margin-bottom:10px; border:2px solid var(--card-border); border-radius:14px; background:var(--card-bg); color:var(--text-main); text-decoration:none; text-align:left; font-family:inherit; cursor:pointer; }
+    .cal-option:active { background:var(--primary-light); }
+    .cal-option-icon { width:40px; height:40px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#fff; }
+    .cal-option-icon svg { width:22px; height:22px; }
+    .cal-option-label { display:block; font-size:calc(18px * var(--fs,1)); font-weight:800; line-height:1.25; }
+    .cal-option-sub { display:block; font-size:calc(14px * var(--fs,1)); color:var(--text-muted); font-weight:500; line-height:1.3; }
+    .cal-sheet-note { font-size:calc(15px * var(--fs,1)); color:var(--text-main); font-weight:600; margin:2px 0 10px; }
+    .cal-sheet-note:empty { display:none; }
+    .cal-cancel { width:100%; min-height:52px; border:none; border-radius:14px; background:var(--primary-light); color:var(--primary); font-family:inherit; font-size:calc(17px * var(--fs,1)); font-weight:800; cursor:pointer; }
   </style>
 </head>
 <body>
@@ -122,6 +138,17 @@
     <a href="#contact" class="nav-link" onclick="scrollToId('contact', event)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg><span>Contact</span></a>
     <a href="#announcements" class="nav-link" onclick="scrollToId('announcements', event)"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path></svg><span>Updates</span></a>
   </nav>
+  <div class="cal-sheet-bg" id="calSheetBg" aria-hidden="true">
+    <div class="cal-sheet" role="dialog" aria-modal="true" aria-labelledby="calSheetTitle">
+      <div class="cal-sheet-head">Add to Calendar</div>
+      <div class="cal-sheet-title" id="calSheetTitle"></div>
+      <div class="cal-sheet-when" id="calSheetWhen"></div>
+      <button type="button" class="cal-option" id="calApple"><span class="cal-option-icon" style="background:#E11D48"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span><span><span class="cal-option-label" id="calAppleLabel">Apple Calendar (iPhone)</span><span class="cal-option-sub" id="calAppleSub"></span></span></button>
+      <a class="cal-option" id="calGoogle" href="https://calendar.google.com/" target="_blank" rel="noopener noreferrer"><span class="cal-option-icon" style="background:#1A73E8"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><polyline points="9 15 11 17 15 13"></polyline></svg></span><span><span class="cal-option-label" id="calGoogleLabel">Google Calendar</span><span class="cal-option-sub" id="calGoogleSub">Opens Google Calendar</span></span></a>
+      <div class="cal-sheet-note" id="calSheetNote" role="status"></div>
+      <button type="button" class="cal-cancel" id="calCancel">Cancel</button>
+    </div>
+  </div>
   <script>
     function scrollToId(id, event) { if (event) event.preventDefault(); var el = document.getElementById(id); if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset, behavior: 'smooth' }); }
     document.getElementById('themeToggle').addEventListener('click', function() { var cur = document.documentElement.getAttribute('data-theme'); document.documentElement.setAttribute('data-theme', cur === 'dark' ? 'light' : 'dark'); });
@@ -293,33 +320,105 @@
       } else sh = to24(s, s.mer);
       return { sh: sh, sm: s.m, eh: eh, em: em };
     }
-    function buildIcs(ev) {
-      var base = new Date(ev.timestamp), lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Echo Canyon Ward//Bulletin//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT'];
-      var title = plainText(ev.title) || 'Ward Event', desc = plainText(ev.sub);
-      lines.push('UID:' + icsDate(base) + '-' + title.replace(/[^A-Za-z0-9]+/g, '').slice(0, 40) + '@echocanyonbulletin');
-      lines.push('DTSTAMP:' + icsUtc(new Date()));
+    // Normalizes an event to {allDay, start, end} (end is exclusive for all-day events)
+    function eventTimes(ev) {
+      var base = new Date(ev.timestamp);
       var multiDay = ev.endTimestamp && icsDate(new Date(ev.endTimestamp)) !== icsDate(base);
       var t = multiDay ? { allDay: true } : parseTimeRange(ev.time);
       if (t.allDay) {
         var last = multiDay ? new Date(ev.endTimestamp) : base;
-        var after = new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1, 12, 0, 0);
-        lines.push('DTSTART;VALUE=DATE:' + icsDate(base), 'DTEND;VALUE=DATE:' + icsDate(after));
-      } else {
-        var st = new Date(base.getFullYear(), base.getMonth(), base.getDate(), t.sh, t.sm, 0);
-        var en = t.eh != null ? new Date(base.getFullYear(), base.getMonth(), base.getDate(), t.eh, t.em, 0) : new Date(st.getTime() + 3600000);
-        lines.push('DTSTART:' + icsLocal(st), 'DTEND:' + icsLocal(en));
+        return { allDay: true, start: new Date(base.getFullYear(), base.getMonth(), base.getDate(), 12, 0, 0), end: new Date(last.getFullYear(), last.getMonth(), last.getDate() + 1, 12, 0, 0) };
       }
+      var st = new Date(base.getFullYear(), base.getMonth(), base.getDate(), t.sh, t.sm, 0);
+      var en = t.eh != null ? new Date(base.getFullYear(), base.getMonth(), base.getDate(), t.eh, t.em, 0) : new Date(st.getTime() + 3600000);
+      return { allDay: false, start: st, end: en };
+    }
+    function buildIcs(ev) {
+      var tm = eventTimes(ev), lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Echo Canyon Ward//Bulletin//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'BEGIN:VEVENT'];
+      var title = plainText(ev.title) || 'Ward Event', desc = plainText(ev.sub);
+      lines.push('UID:' + icsDate(tm.start) + '-' + title.replace(/[^A-Za-z0-9]+/g, '').slice(0, 40) + '@echocanyonbulletin');
+      lines.push('DTSTAMP:' + icsUtc(new Date()));
+      if (tm.allDay) lines.push('DTSTART;VALUE=DATE:' + icsDate(tm.start), 'DTEND;VALUE=DATE:' + icsDate(tm.end));
+      else lines.push('DTSTART:' + icsLocal(tm.start), 'DTEND:' + icsLocal(tm.end));
       lines.push('SUMMARY:' + icsEscape(title));
       if (desc) lines.push('DESCRIPTION:' + icsEscape(desc));
       lines.push('END:VEVENT', 'END:VCALENDAR');
       return lines.map(icsFold).join('\r\n') + '\r\n';
     }
+    function googleCalendarUrl(ev) {
+      var tm = eventTimes(ev), f = tm.allDay ? icsDate : icsLocal;
+      var url = 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(plainText(ev.title) || 'Ward Event') + '&dates=' + f(tm.start) + '/' + f(tm.end);
+      var desc = plainText(ev.sub); if (desc) url += '&details=' + encodeURIComponent(desc);
+      return url;
+    }
+    var HELPER_URL = 'https://ecwardinfo-svg.github.io/EchoCanyonBulletin/add-to-calendar.html';
+    function appleHelperUrl(ev) {
+      var tm = eventTimes(ev), f = tm.allDay ? icsDate : icsLocal;
+      var q = 'title=' + encodeURIComponent(plainText(ev.title) || 'Ward Event') + '&start=' + f(tm.start) + '&end=' + f(tm.end) + '&allday=' + (tm.allDay ? '1' : '0');
+      var desc = plainText(ev.sub); if (desc) q += '&details=' + encodeURIComponent(desc);
+      return HELPER_URL + '?' + q;
+    }
     var IS_IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    var IS_ANDROID = /Android/i.test(navigator.userAgent);
+    function isIosStandalone() { return IS_IOS && (window.navigator.standalone === true || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)); }
+    var calEvents = [];
     function calendarLinkHtml(ev) {
-      var url = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(buildIcs(ev));
-      var file = (plainText(ev.title).replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'event') + '.ics';
-      // iOS Safari opens a data:text/calendar link directly in the "Add to Calendar" sheet; Android/desktop download the .ics file
-      return '<div><a class="cal-btn" href="' + url + '"' + (IS_IOS ? '' : ' download="' + file + '"') + ' aria-label="Add ' + plainText(ev.title).replace(/"/g, '&quot;') + ' to your calendar"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="13" x2="12" y2="19"></line><line x1="9" y1="16" x2="15" y2="16"></line></svg><span>Add to Calendar</span></a></div>';
+      var idx = calEvents.push(ev) - 1;
+      return '<div><button type="button" class="cal-btn" data-cal="' + idx + '" aria-haspopup="dialog" aria-label="Add ' + plainText(ev.title).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;') + ' to your calendar"><svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line><line x1="12" y1="13" x2="12" y2="19"></line><line x1="9" y1="16" x2="15" y2="16"></line></svg><span>Add to Calendar</span></button></div>';
+    }
+    var calSheetEvent = null;
+    function openCalSheet(ev) {
+      calSheetEvent = ev;
+      document.getElementById('calSheetTitle').textContent = plainText(ev.title) || 'Ward Event';
+      document.getElementById('calSheetWhen').textContent = ev.dateDisplay + (ev.time ? ' • ' + plainText(ev.time) : '');
+      var apple = document.getElementById('calApple'), google = document.getElementById('calGoogle');
+      if (IS_IOS) {
+        document.getElementById('calAppleLabel').textContent = 'Apple Calendar (iPhone)';
+        document.getElementById('calAppleSub').textContent = isIosStandalone() ? 'Opens Safari, then tap “Add to Calendar”' : 'Opens the iPhone Calendar';
+        document.getElementById('calGoogleLabel').textContent = 'Google Calendar';
+        document.getElementById('calGoogleSub').textContent = 'If you use Google Calendar';
+        apple.parentNode.insertBefore(apple, google);
+      } else {
+        document.getElementById('calGoogleLabel').textContent = IS_ANDROID ? 'Google Calendar (Android)' : 'Google Calendar';
+        document.getElementById('calGoogleSub').textContent = IS_ANDROID ? 'Best for most Android phones' : 'Opens Google Calendar';
+        document.getElementById('calAppleLabel').textContent = IS_ANDROID ? 'Other calendar app (.ics file)' : 'Apple / Outlook (.ics file)';
+        document.getElementById('calAppleSub').textContent = IS_ANDROID ? 'Samsung, Outlook, etc. Downloads a file; tap it to open' : 'Downloads a calendar file to open';
+        google.parentNode.insertBefore(google, apple);
+      }
+      document.getElementById('calGoogle').href = googleCalendarUrl(ev);
+      document.getElementById('calSheetNote').textContent = '';
+      var bg = document.getElementById('calSheetBg'); bg.classList.add('show'); bg.setAttribute('aria-hidden', 'false');
+      setTimeout(function(){ (IS_IOS ? apple : google).focus(); }, 50);
+    }
+    function closeCalSheet() { var bg = document.getElementById('calSheetBg'); bg.classList.remove('show'); bg.setAttribute('aria-hidden', 'true'); }
+    function addToAppleCalendar(ev) {
+      if (IS_IOS) {
+        var helper = appleHelperUrl(ev);
+        if (isIosStandalone()) {
+          // Home Screen web apps can't open .ics files themselves, so hand off to real Safari (works on iOS 17+)
+          var hidden = false; var onVis = function(){ if (document.visibilityState === 'hidden') hidden = true; };
+          document.addEventListener('visibilitychange', onVis);
+          window.location.href = 'x-safari-' + helper;
+          setTimeout(function(){
+            document.removeEventListener('visibilitychange', onVis);
+            if (!hidden) document.getElementById('calSheetNote').textContent = 'If Safari did not open, choose Google Calendar, or open this bulletin in the Safari app and try again.';
+          }, 1800);
+          return;
+        }
+        window.location.href = helper;
+        return;
+      }
+      // Android / desktop (browser or installed Home Screen app): download the .ics file
+      try {
+        var blob = new Blob([buildIcs(ev)], { type: 'text/calendar;charset=utf-8' });
+        var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+        a.download = (plainText(ev.title).replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'event') + '.ics';
+        a.rel = 'noopener'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(a.href); }, 60000);
+        document.getElementById('calSheetNote').textContent = 'Calendar file downloaded. Tap it in your notifications or Downloads to add it. If nothing happens, choose Google Calendar.';
+      } catch (err) {
+        window.open(googleCalendarUrl(ev), '_blank', 'noopener');
+      }
     }
     window.handleSchedule = function(response) {
       var rows = extractTable(response), sunday = [], map = {}, youth = [];
@@ -350,7 +449,7 @@
       youth.sort(function(a,b){ return a.timestamp-b.timestamp; });
       var sBox = document.getElementById('sundayTimeline'); sBox.innerHTML = '';
       sunday.forEach(function(b){ var links=''; if (b.links.length){ links='<div class="class-grid">'+b.links.map(function(l){ return '<a class="lesson-link-btn" href="'+l.url+'" target="_blank"><span>'+l.text+'</span><span>↗</span></a>'; }).join('')+'</div>'; } var d=document.createElement('div'); d.className='time-slot'; d.innerHTML='<span class="time-badge">'+formatBadgeTime(b.time)+'</span><div class="time-content"><div class="time-name">'+b.title+'</div>'+(b.sub?'<div class="time-sub">'+b.sub+'</div>':'')+links+'</div>'; sBox.appendChild(d); });
-      var yBox = document.getElementById('youthTimeline'); yBox.innerHTML = '';
+      var yBox = document.getElementById('youthTimeline'); yBox.innerHTML = ''; calEvents = [];
       youth.forEach(function(yb){ var d=document.createElement('div'); d.className='time-slot'; d.innerHTML='<span class="time-badge accent-badge">'+formatBadgeTime(yb.time)+'</span><div class="time-content"><div class="time-name">'+yb.title+'</div><div class="time-date-line">'+yb.dateDisplay+'</div>'+(yb.sub?'<div class="time-sub">'+yb.sub+'</div>':'')+(yb.linkText&&yb.linkUrl?'<div class="class-grid"><a class="lesson-link-btn" href="'+yb.linkUrl+'" target="_blank"><span>'+yb.linkText+'</span><span>↗</span></a></div>':'')+calendarLinkHtml(yb)+'</div>'; yBox.appendChild(d); });
     };
     window.handleDirectory = function(response) {
@@ -383,6 +482,12 @@
     document.addEventListener('DOMContentLoaded', function(){
       var toast = document.createElement('div'); toast.id = 'refreshToast'; toast.className = 'refresh-toast'; toast.textContent = 'Bulletin updated'; document.body.appendChild(toast);
       document.getElementById('refreshBtn').addEventListener('click', function(){ loadAll(true); });
+      document.getElementById('youthTimeline').addEventListener('click', function(e){ var b = e.target.closest ? e.target.closest('.cal-btn') : null; if (!b) return; e.preventDefault(); var ev = calEvents[parseInt(b.getAttribute('data-cal'), 10)]; if (ev) openCalSheet(ev); });
+      document.getElementById('calApple').addEventListener('click', function(){ if (calSheetEvent) addToAppleCalendar(calSheetEvent); });
+      document.getElementById('calGoogle').addEventListener('click', function(){ setTimeout(closeCalSheet, 300); });
+      document.getElementById('calCancel').addEventListener('click', closeCalSheet);
+      document.getElementById('calSheetBg').addEventListener('click', function(e){ if (e.target === this) closeCalSheet(); });
+      document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeCalSheet(); });
       loadAll(false);
     });
     // Also refresh automatically when the app is reopened from the Home Screen after 1+ minute away
