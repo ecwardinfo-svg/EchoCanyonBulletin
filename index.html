@@ -67,6 +67,16 @@
     .notice-item { display:block; }
     .dir-actions { display:flex; gap:8px; flex-shrink:0; align-items:center; }
     .directory-row > div:first-child { min-width:0; overflow-wrap:anywhere; }
+    .dir-group-head { font-size:calc(12px * var(--fs,1)); font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin:16px 0 2px; }
+    .dir-group-head:first-child { margin-top:0; }
+    .dir-more summary { display:flex; align-items:center; justify-content:space-between; gap:12px; min-height:44px; padding-top:10px; list-style:none; cursor:pointer; font-size:calc(15.5px * var(--fs,1)); font-weight:700; color:var(--text-main); }
+    .dir-more summary::-webkit-details-marker { display:none; }
+    .dir-count { color:var(--text-muted); font-weight:600; }
+    .dir-chev { width:22px; height:22px; flex-shrink:0; color:var(--text-muted); transition:transform .2s; }
+    .dir-more[open] .dir-chev { transform:rotate(180deg); }
+    .dir-more-list { margin-top:10px; border-top:1px solid var(--card-border); }
+    .dir-more-list .dir-role { display:none; }
+    .dir-more-list .directory-row { align-items:center; }
     .action-btn { width:46px; height:46px; flex-shrink:0; border-radius:50%; border:1px solid var(--card-border); display:inline-flex; align-items:center; justify-content:center; color:#334155; text-decoration:none; }
     [data-theme="dark"] .action-btn { color:#CBD5E1; background:#1E293B; border-color:#334155; }
     .action-btn svg { width:21px; height:21px; }
@@ -504,7 +514,15 @@
     window.handleDirectory = function(response) {
       var rows = extractTable(response), box = document.getElementById('directoryList'); box.innerHTML = '';
       var start = rows[0] && /role|position/i.test(rows[0][0]||'') ? 1 : 0;
-      for (var i=start;i<rows.length;i++){ var role=rows[i][0]||'', name=rows[i][1]||'', phone=(rows[i][2]||'').replace(/\D/g,''), email=(rows[i][3]||'').trim(); if(!role&&!name) continue; var btns=''; if(phone){ btns+='<a class="action-btn" href="tel:'+phone+'"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a><a class="action-btn" href="sms:'+phone+'"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>'; } if(email) btns+='<a class="action-btn" href="mailto:'+email+'"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></a>'; var d=document.createElement('div'); d.className='directory-row'; d.innerHTML='<div><div class="dir-role">'+role+'</div><div class="dir-name">'+name+'</div></div><div class="dir-actions">'+btns+'</div>'; box.appendChild(d); }
+      function dirRow(role, name, phone, email){ var btns=''; if(phone){ btns+='<a class="action-btn" href="tel:'+phone+'"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.053 15.053 0 006.59 6.59l2.2-2.2a1 1 0 011.02-.24c1.12.37 2.33.57 3.57.57a1 1 0 011 1V20a1 1 0 01-1 1A17 17 0 013 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.45.57 3.57a1 1 0 01-.24 1.02l-2.21 2.2z"/></svg></a><a class="action-btn" href="sms:'+phone+'"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg></a>'; } if(email) btns+='<a class="action-btn" href="mailto:'+email+'"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></a>'; var d=document.createElement('div'); d.className='directory-row'; d.innerHTML='<div><div class="dir-role">'+role+'</div><div class="dir-name">'+name+'</div></div><div class="dir-actions">'+btns+'</div>'; return d; }
+      function groupHead(text){ var h=document.createElement('div'); h.className='dir-group-head'; h.textContent=text; box.appendChild(h); var g=document.createElement('div'); g.className='dir-group'; box.appendChild(g); return g; }
+      var leaders=[], inWard=[], fromWard=[];
+      for (var i=start;i<rows.length;i++){ var role=rows[i][0]||'', name=rows[i][1]||'', phone=(rows[i][2]||'').replace(/\D/g,''), email=(rows[i][3]||'').trim(); if(!role&&!name) continue; var r=role.toLowerCase(), row=dirRow(role,name,phone,email); if(/serving\s+from/.test(r)) fromWard.push(row); else if(/serving\s+in/.test(r)||r.indexOf('missionar')!==-1) inWard.push(row); else leaders.push(row); }
+      if (leaders.length){ var lg=groupHead('Ward Leaders'); leaders.forEach(function(d){ lg.appendChild(d); }); }
+      if (inWard.length || fromWard.length){
+        var mg=groupHead('Missionaries'); inWard.forEach(function(d){ mg.appendChild(d); });
+        if (fromWard.length){ var det=document.createElement('details'); det.className='dir-more'; det.innerHTML='<summary><span>Serving from our ward <span class="dir-count">('+fromWard.length+')</span></span><svg class="dir-chev" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg></summary><div class="dir-more-list"></div>'; var list=det.querySelector('.dir-more-list'); fromWard.forEach(function(d){ list.appendChild(d); }); mg.appendChild(det); }
+      }
     };
     function todayStart() { var n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()).getTime(); }
     window.handleAnnouncements = function(response) {
